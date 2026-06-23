@@ -38,8 +38,7 @@ def _client():
 
 
 def _card_blocks(clip: dict) -> list[dict]:
-    lane = clip.get("lane", "?")
-    badge = "💰 Whop" if lane == "whop" else "📺 Owned/YPP"
+    badge = "📺 Owned/YPP"
     link = f"\n<{clip['post_url']}|▶︎ Preview clip>" if clip.get("post_url") else ""
     return [
         {"type": "header", "text": {"type": "plain_text", "text": f"🎬 QC · {clip['clip_id']}"}},
@@ -52,8 +51,8 @@ def _card_blocks(clip: dict) -> list[dict]:
         ]},
         {"type": "context", "elements": [{"type": "mrkdwn",
             "text": ("React ✅ to *approve & schedule* · ❌ to *reject*. "
-                     "Check: hook in 1–2s · transformation present (owned) · "
-                     "no copyrighted music · Whop rules met." + link)}]},
+                     "Check: hook in 1–2s · transformation present · "
+                     "no copyrighted music." + link)}]},
     ]
 
 

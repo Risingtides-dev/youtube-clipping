@@ -19,7 +19,7 @@ One self-contained repo. Everything for the play lives here.
 
 ### ⚙️ The `ycp` system
 `source` (ranked clip queue, yt-dlp, no key) · `qc-post`/`qc-listen` (Slack approval) ·
-`capture` (views + Whop payouts) · `brief` (weekly Double-Down Brief) · `demo` (see it work).
+`capture` (public views) · `brief` (weekly Double-Down Brief) · `demo` (see it work).
 Code in `src/ycp/`, tests in `tests/`, config in `config/`, cron in `scripts/`.
 
 ### See it work in 10 seconds
@@ -32,9 +32,9 @@ Prints a real Double-Down Brief from demo data — the closed loop that tells yo
 creator × format × hook to double down on.
 
 ### The model in one line
-Clip big creators → post across many channels → **Whop bounties pay you now** (~30–75× the
-YouTube ad rate) while **owned channels grow toward YouTube monetization**. Whop = paycheck,
-owned channels = savings. Transformation + account health keep it all alive.
+Clip big creators → post across many **owned** channels → monetize the owned stack
+(TikTok Creator Rewards + YouTube Partner Program + affiliate + brand deals). Owned channels
+= the appreciating asset. Transformation + account health keep it all alive. _(Whop cut 2026-06; pure owned-first.)_
 
 ---
 *Standalone git repo (its own root — not part of the home/viral-course repo). Code lives here

@@ -16,7 +16,7 @@ RAW = [
 
 
 def test_parse_computes_velocity():
-    rows = sourcing.parse_entries(RAW, "Flagrant", "whop", now_epoch=NOW)
+    rows = sourcing.parse_entries(RAW, "Flagrant", "owned", now_epoch=NOW)
     assert len(rows) == 3  # the id=None entry is dropped
     by_id = {r["video_id"]: r for r in rows}
     assert by_id["v1"]["view_velocity"] == 50_000.0
@@ -26,7 +26,7 @@ def test_parse_computes_velocity():
 
 
 def test_rank_filters_and_sorts():
-    rows = sourcing.parse_entries(RAW, "Flagrant", "whop", now_epoch=NOW)
+    rows = sourcing.parse_entries(RAW, "Flagrant", "owned", now_epoch=NOW)
     ranked = sourcing.rank(rows, {"min_views": 100_000})
     ids = [r["video_id"] for r in ranked]
     assert "v3" not in ids                      # 80k < 100k filtered out

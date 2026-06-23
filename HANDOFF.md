@@ -57,8 +57,8 @@ The research answers **what to clip and which angles to run**. You take it from 
    Eric's own faceless channels (he owns them, they appreciate, they run ~hands-off), monetized by
    **YouTube Partner Program + TikTok Creator Rewards + affiliate + (later) direct brand deals.**
    Whop clipping campaigns are **removed entirely** — gig work where you own nothing, pools dry up,
-   and payouts legally require Eric's identity (un-automatable). *Cleanup owed:* strip the
-   Whop-payout path in `src/ycp/capture.py` and any Whop references in the strategy docs.
+   and payouts legally require Eric's identity (un-automatable). *Cleanup done (2026-06):* the
+   Whop-payout path in `src/ycp/capture.py` and Whop references across the system were stripped.
    *(Original docs were Whop-first; reconciled owned-first 2026-06-22, then Whop cut entirely.)*
 2. **Single-lane now** — only Lane 2 (owned / YPP asset) remains. Lane 1 (permissioned/cash via
    Whop) is gone, not just demoted.
@@ -182,8 +182,8 @@ All four §9 decisions are made. Build to these; do **not** re-ask.
   Eric is "not that dependent on it long-term." One-time human step = connect accounts in the
   Repurpose dashboard (matches the one-time-auth constraint exactly). *(Affects build 3.)*
 - **Launch order → Hot Seat + Money Fights** first (Concept 1 + Concept 2), per the recommendation.
-- **Whop → CUT ENTIRELY.** Pure owned-first. Strip Whop from the system: remove the Whop-payout
-  path in `src/ycp/capture.py` and any Whop references in the strategy docs. No turbo lane.
+- **Whop → CUT ENTIRELY.** Pure owned-first. Whop was stripped from the system (2026-06): the
+  Whop-payout path in `src/ycp/capture.py` and Whop references across the docs are removed. No turbo lane.
 - **QC → MANUAL Slack review** (revised 2026-06-22; was briefly "auto"). Every clip is posted to
   the Slack QC channel and **nothing advances to distribution until Eric ✅ it** — he oversees the
   content to make sure it's done right. Flip `qc.auto: true` ONLY once the output has earned trust

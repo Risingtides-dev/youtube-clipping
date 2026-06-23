@@ -41,7 +41,7 @@ def add_derived(df: pd.DataFrame) -> pd.DataFrame:
         return df.copy()
     out = df.copy()
     views = out["views"].clip(lower=0).fillna(0)
-    revenue = out.get("ad_revenue", 0).fillna(0) + out.get("whop_payout", 0).fillna(0)
+    revenue = out.get("ad_revenue", 0).fillna(0)
     with np.errstate(divide="ignore", invalid="ignore"):
         out["revenue_per_1k"] = np.where(views > 0, revenue / (views / 1000.0), 0.0)
     out["retention_pct"] = out.get("retention_pct", pd.Series(index=out.index)).fillna(0)
@@ -76,7 +76,7 @@ def rollup(df: pd.DataFrame, dims: list[str], min_sample: int | None = None) -> 
         return pd.DataFrame(columns=[*dims, "n", "avg_score", "avg_views", "total_revenue"])
     min_sample = settings()["scoring"]["min_sample"] if min_sample is None else min_sample
     df = df.copy()
-    df["_revenue"] = df.get("ad_revenue", 0).fillna(0) + df.get("whop_payout", 0).fillna(0)
+    df["_revenue"] = df.get("ad_revenue", 0).fillna(0)
     g = (
         df.groupby(dims, dropna=False)
         .agg(

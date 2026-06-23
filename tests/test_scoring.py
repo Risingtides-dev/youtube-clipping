@@ -29,7 +29,7 @@ def test_scores_bounded_and_ordered(tmp_path):
 
 
 def test_revenue_per_1k_no_div_by_zero():
-    df = pd.DataFrame([{"views": 0, "ad_revenue": 0, "whop_payout": 0,
+    df = pd.DataFrame([{"views": 0, "ad_revenue": 0,
                         "length_sec": 30, "retention_pct": 0}])
     out = scoring.add_derived(df)
     assert out["revenue_per_1k"].iloc[0] == 0.0

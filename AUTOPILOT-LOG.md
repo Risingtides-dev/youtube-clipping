@@ -41,7 +41,7 @@ Built the autonomy backbone end-to-end. Verified: `ruff` clean · **58 tests pas
 
 ### 🧭 Decisions baked in (HANDOFF §9, this session)
 - Posting → **Repurpose.io** (Eric trialing it). · Launch → **Hot Seat + Money Fights**.
-- Whop → **CUT** (owned-first only; `capture.py` Whop-payout strip still owed as cleanup).
+- Whop → **CUT** (owned-first only; `capture.py` Whop-payout path stripped 2026-06).
 - **QC → MANUAL Slack review** (revised from "auto"): clips post to Slack, nothing advances
   until Eric ✅'s it. He oversees content until it earns autonomy ("once I see you're doing the
   right thing then I'll let it run autonomously"). `qc.auto: false` in settings.

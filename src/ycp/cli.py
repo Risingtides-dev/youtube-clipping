@@ -5,7 +5,7 @@
   ycp source                    Stage 1: build today's ranked source queue (yt-dlp)
   ycp qc-post                   Stage 3: post pending clips to Slack for approval
   ycp qc-listen                 Stage 3: run the Slack reaction listener (blocks)
-  ycp capture                   Stage 5: snapshot public views (+ --whop-csv FILE)
+  ycp capture                   Stage 5: snapshot public views
   ycp brief                     Stage 5: generate the weekly brief (+ --post-slack)
   ycp clip <url>                Stage 2: hybrid yt-dlp+whisper+ffmpeg vertical clips
   ycp scoreboard                Race to $15K — the gamified game state (+ --demo)
@@ -72,9 +72,6 @@ def _cmd_qc_listen(_: argparse.Namespace) -> int:
 def _cmd_capture(args: argparse.Namespace) -> int:
     n = capture_mod.capture_public()
     print(f"✓ captured public views for {n} clips")
-    if args.whop_csv:
-        m = capture_mod.import_whop_csv(args.whop_csv)
-        print(f"✓ imported {m} Whop payouts from {args.whop_csv}")
     return 0
 
 
@@ -148,8 +145,7 @@ def build_parser() -> argparse.ArgumentParser:
     sub.add_parser("source", help="build today's ranked source queue").set_defaults(fn=_cmd_source)
     sub.add_parser("qc-post", help="post pending clips to Slack").set_defaults(fn=_cmd_qc_post)
     sub.add_parser("qc-listen", help="run Slack approval listener (blocks)").set_defaults(fn=_cmd_qc_listen)
-    cap = sub.add_parser("capture", help="snapshot views / import Whop payouts")
-    cap.add_argument("--whop-csv", help="path to a Whop payout CSV export")
+    cap = sub.add_parser("capture", help="snapshot public views")
     cap.set_defaults(fn=_cmd_capture)
     br = sub.add_parser("brief", help="generate the weekly Double-Down Brief")
     br.add_argument("--post-slack", action="store_true", help="also post to the QC channel")
@@ -157,7 +153,7 @@ def build_parser() -> argparse.ArgumentParser:
     cl = sub.add_parser("clip", help="hybrid pipeline: url -> vertical captioned clips")
     cl.add_argument("url", help="source video URL (YouTube etc.)")
     cl.add_argument("--max", type=int, default=6, help="max clips to produce (default 6)")
-    cl.add_argument("--lane", default="whop", choices=["whop", "owned"])
+    cl.add_argument("--lane", default="owned", choices=["owned"])
     cl.add_argument("--creator", default="unknown", help="source creator label")
     cl.add_argument("--channel", default="clips", help="target posting channel label")
     cl.add_argument("--hook-cta", action="store_true", help="burn hook title + CTA banner")

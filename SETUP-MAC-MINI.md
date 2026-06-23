@@ -49,7 +49,7 @@ cp .env.example .env
 Then edit `.env` and fill what you need:
 - **`DEEPSEEK_API_KEY`** — the viral hook agent (paste from 1Password). Without it, hooks fall back to a transcript heuristic.
 - **`SLACK_BOT_TOKEN` / `SLACK_APP_TOKEN` / `SLACK_QC_CHANNEL`** — required for the manual QC board (clips post here for your ✅/❌). See `.env.example` for the app scopes.
-- The rest (YouTube/Whop) are optional.
+- The rest (YouTube API key) is optional.
 
 ## 4. Verify it works
 

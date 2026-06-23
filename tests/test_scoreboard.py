@@ -36,12 +36,12 @@ def test_bar_bounds():
 def test_compute_revenue_hits_and_quests():
     df = _df([
         {"clip_id": "a", "channel": "ch1", "status": "posted", "source_creator": "Jubilee",
-         "views": 200_000, "whop_payout": 0.0, "ad_revenue": 50.0},
+         "views": 200_000, "ad_revenue": 50.0},
         {"clip_id": "b", "channel": "ch1", "status": "posted", "source_creator": "Flagrant",
-         "views": 5_000, "whop_payout": 10.0, "ad_revenue": 0.0},
+         "views": 5_000, "ad_revenue": 10.0},
     ])
     s = sb.compute(df)
-    assert s["run_rate"] == 60.0
+    assert s["run_rate"] == 60.0  # ad revenue only (owned-first)
     assert s["hits"] == 1 and s["channels"] == 1 and s["clips"] == 2
     q1 = next(q for q in s["quests"] if q[0].startswith("1 ·"))
     assert "LIVE" in q1[1]  # Jubilee feeds quest 1
@@ -49,7 +49,7 @@ def test_compute_revenue_hits_and_quests():
 
 def test_build_renders_leaderboard_and_level_up():
     df = _df([{"clip_id": "a", "channel": "ch1", "status": "posted", "source_creator": "X",
-               "views": 1000, "whop_payout": 7_000.0, "ad_revenue": 0.0}])
+               "views": 1000, "ad_revenue": 7_000.0}])
     md = sb.build(df)
     assert "Race to $15K" in md and "ch1" in md
     assert "Engine" in md  # $7K run-rate -> Level 5 Engine

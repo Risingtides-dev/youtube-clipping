@@ -50,7 +50,6 @@ def env() -> dict[str, str | None]:
     load_dotenv(ROOT / ".env")
     return {
         "youtube_api_key": os.getenv("YOUTUBE_API_KEY") or None,
-        "whop_api_key": os.getenv("WHOP_API_KEY") or None,
         "slack_bot_token": os.getenv("SLACK_BOT_TOKEN") or None,
         "slack_app_token": os.getenv("SLACK_APP_TOKEN") or None,
         "slack_qc_channel": os.getenv("SLACK_QC_CHANNEL") or None,

@@ -1,19 +1,21 @@
 # Channel Concepts — the paths to test toward $15K/month
 
-Five distinct content angles, ranked by likelihood of success from Cycle-1 evidence
+_(Whop cut 2026-06; pure owned-first — the Cash Engine concept was removed and the rest renumbered.)_
+
+Four distinct content angles, ranked by likelihood of success from Cycle-1 evidence
 (`SOURCE-INTELLIGENCE.md`). Each is a **testable bet** with a hard go/no-go gate, not a
 guess. Spin up 1 channel per concept you want to run; the go/no-go test decides double-down
 vs. kill in 14 days. **At least one is an agitation/debate angle** (Concept 1) — and it
 stays inside platform policy.
 
-**The portfolio logic:** run the **cash engine (Concept 3)** day one to fund the build and
-learn what travels, while you incubate **1–2 owned concepts** (1, 2, 4, or 5) toward YPP.
-Whop = paycheck now; owned channels = the appreciating asset. $15K = Whop floor + maturing
-YPP + the engagement multiplier of the debate angle, several validated concepts in parallel.
+**The portfolio logic:** stand up **1–2 owned concepts** (lead with 1 + 2) and incubate them
+toward the owned monetization stack (TikTok Creator Rewards + YPP + affiliate + brand deals).
+Owned channels = the appreciating asset. $15K = the maturing owned stack + the engagement
+multiplier of the debate angle, with several validated concepts running in parallel.
 
 > **The universal go/no-go test** (per concept, unless noted): spin up 1 channel, post 20
-> transformed clips over 14 days. **GREENLIGHT** if median ≥5K views **OR** ≥1 clip >100K
-> **OR** (Lane 1) first ≥$200 in approved Whop payouts. **ITERATE** hooks once if 2–5K
+> transformed clips over 14 days. **GREENLIGHT** if median ≥5K views **OR** ≥1 clip >100K.
+> **ITERATE** hooks once if 2–5K
 > median. **KILL** if median <2K and no breakout. Log every result to the DB; the Double-Down
 > Brief re-ranks from there.
 
@@ -29,7 +31,7 @@ YPP + the engagement multiplier of the debate angle, several validated concepts 
   outruns a higher-view non-debate clip. Structured debate has a YouTube hate-policy carve-out,
   and the **Jan 2026 update** *expanded* monetization on non-graphic controversial topics.
 - **Feeders:** Jubilee · No Jumper · Pop Culture Crisis · Modern Day Debate · PBD (debate
-  moments) · Flagrant (controversy) · the Whatever clip ecosystem.
+  moments) · Flagrant (controversy) · the Whatever clip channels.
 - **Format + hook:** cold-open *inside* the clash (never the calm intro); the polarizing claim
   as bold on-screen text in frame 1 (lands on mute); cut to reaction faces; **end on the
   unresolved question + "Who's right? 👇"** so the fight happens in the comments. Reply to 50+
@@ -50,31 +52,13 @@ YPP + the engagement multiplier of the debate angle, several validated concepts 
   angle is **under-clipped**. Ramit's "Money for Couples" (real couples fighting over money) is
   the single best open lane found this cycle — elite emotional fuel, advertiser-safe.
 - **Feeders:** Ramit Sethi (lead) · Iced Coffee Hour · Graham Stephan · My First Million ·
-  Codie Sanchez · Mark Cuban/Trailblazers (PAID — doubles as Lane-1 cash).
+  Codie Sanchez · Mark Cuban/Trailblazers.
 - **Format + hook:** lead with the dollar number or the fight ("They make $400K and can't stop
   fighting about $40"); caption the tension; pay off the reveal at the end.
-- **Lane:** mixed — Trailblazers + ICH are 💰whop (cash), the rest owned (high-RPM YPP).
-- **Go/No-Go:** universal test. On Trailblazers clips, the first approved Whop payout is the
-  cash-validation signal.
+- **Lane:** owned (high-RPM YPP).
+- **Go/No-Go:** universal test.
 
-## 🥉 Concept 3 — "Clip-Paid Cash Engine" · Lane-1 volume  *(run this DAY ONE)*
-
-- **Thesis:** pure permissioned volume on creators/brands running **funded** clip campaigns.
-  Paid this week, zero strike risk (you're paid to distribute), learn what travels on someone
-  else's channel risk. Not an audience play — a **cash + learning** play.
-- **Why it wins:** funds the build while owned channels mature; it's the realistic floor of the
-  $15K stack. AI-assisted speed is fine here.
-- **Feeders (YouTube source, paid):** Diary of a CEO (Clipster) · Iman Gadzhi (Whop) · Jay
-  Shetty (Whop) · Iced Coffee Hour. **Plus non-YouTube-source cash** from the campaign board:
-  Coinbase $3/1k, Boring Money $1.50/1k, Shesbirdie $1.75/1k, Roobet, Mark Cuban $1/1k.
-- **Rules that get you paid:** join only ≥60% pool & ≥$1.50/1k; submit **inside the window**;
-  set the verification code in bio; organic views only.
-- **Lane:** 💰whop (cash).
-- **Go/No-Go:** join 5 qualifying campaigns, 50 clips over 14 days. **GREENLIGHT on first $200
-  approved payout**; track realized $/1k (target ≥$1.00 net). Kill any campaign whose pool
-  drops <30% before your approvals land.
-
-## Concept 4 — "Crash Out" · comedy & reaction  *(volume → YPP)*
+## 🥉 Concept 3 — "Crash Out" · comedy & reaction  *(volume → YPP)*
 
 - **Thesis:** self-contained comedic/roast/rage beats that need zero context. Identity: *"the
   bit you'll text your group chat."*
@@ -88,7 +72,7 @@ YPP + the engagement multiplier of the debate angle, several validated concepts 
 - **Go/No-Go:** universal test, but raise the bar — comedy median ≥10K **OR** ≥1 clip >250K
   (it should travel further or it's not landing).
 
-## Concept 5 — "Myth-Busting" · health & fitness  *(evergreen, advertiser-safe)*
+## Concept 4 — "Myth-Busting" · health & fitness  *(evergreen, advertiser-safe)*
 
 - **Thesis:** counterintuitive, screenshot-bait expert takes — *"research actually says X."*
   Identity: *"the 30-second correction to what you believed."*
@@ -105,11 +89,10 @@ YPP + the engagement multiplier of the debate angle, several validated concepts 
 
 ### Recommended first move
 
-Run **Concept 3 (cash engine)** immediately — it pays this week and teaches you which
-hooks/formats win, on permissioned content. In parallel, stand up **Concept 1 (Hot Seat)** as
-the owned-asset lead (top velocity, fastest audience build) and **Concept 2 (Money Fights)** as
-the highest-RPM owned bet. That's one cash lane + two appreciating assets — the spine of the
-$15K stack. Concepts 4 and 5 are the next wave once the first three clear their gates.
+Stand up **Concept 1 (Hot Seat)** as the owned-asset lead (top velocity, fastest audience
+build) and **Concept 2 (Money Fights)** as the highest-RPM owned bet. Those two appreciating
+assets are the spine of the $15K stack. **Concept 3 (Crash Out)** and **Concept 4
+(Myth-Busting)** are the next wave once the first two clear their gates.
 
 > Every result feeds the DB → the weekly Double-Down Brief → next cycle of this loop re-ranks
 > which concepts and feeders to scale. The angles that clear their gate get more source pages;

@@ -16,19 +16,19 @@ velocity and re-verify every "PAID" flag before committing — pools deplete, ro
 
 | ROS | Source | Niche | Lane | vel/hr (live) | Why it scores |
 |---|---|---|---|---|---|
-| **86.5** | Diary of a CEO `@TheDiaryOfACEO` | mindset | 💰whop | 27,612 | **#1.** PAID (Clipster); 15M subs; 2.1M median; contrarian-expert debate moments |
+| **86.5** | Diary of a CEO `@TheDiaryOfACEO` | mindset | owned | 27,612 | **#1.** 15M subs; 2.1M median; contrarian-expert debate moments; high-RPM business authority |
 | **81.8** | Jubilee `@jubilee` | debate | owned | 51,725 | **Top velocity.** Surrounded 1v25; structured-debate policy carve-out |
 | **72.6** | Ramit Sethi `@ramitsethi` | finance | owned | 947 | **#1 open lane.** Money for Couples = real couples fighting over money; US top-RPM, under-clipped |
 | **71.6** | Bad Friends `@BadFriends` | comedy | owned | 21,725 | Open lane; high meme density; thinner swarm than Theo/KillTony |
-| **71.1** | Iced Coffee Hour `@TheIcedCoffeeHour` | finance | 💰whop | 5,205 | Ran Whop ~$3k; net-worth reveals; US top-RPM |
-| **69.5** | Mark Cuban / Trailblazers | finance | 💰whop | _agent_ | **VERIFIED PAID** ContentRewards $1/1k, $4k pool ~60% left, low saturation |
+| **71.1** | Iced Coffee Hour `@TheIcedCoffeeHour` | finance | owned | 5,205 | Net-worth reveals; US top-RPM; strong clip points |
+| **69.5** | Mark Cuban / Trailblazers | finance | owned | _agent_ | Low saturation; high-RPM business authority |
 | **68.9** | Kill Tony `@killtony` | comedy | owned | 13,715 | Self-contained 60s sets = most clippable format; saturated |
 | **67.0** | Shawn Ryan Show `@ShawnRyanShow` | mindset | owned | 5,862 | Emotional veteran/IRL stories; fresh daily; moderate saturation |
 | **66.7** | PBD Podcast `@PBDPodcast` | finance | owned | 2,068 | 5 live eps/wk = huge fresh supply; cherry-pick business (politics drags RPM) |
 | **66.4** | No Jumper `@nojumper` | debate | owned | 2,675 | Culture/clash; downsizing = open; edgier — screen for protected-class lines |
 | **65.2** | Graham Stephan `@GrahamStephan` | finance | owned | 3,089 | Income confessions; US top-RPM; official clips exists |
 | **65.2** | Codie Sanchez `@codiesanchezCT` | finance | owned | 1,278 | "Buy boring businesses" contrarian; quote-dense; open-moderate |
-| **64.7** | Flagrant `@OfficialFlagrant` | comedy | 💰whop | 1,665 | Schulz controversy-bait, big guests; ⚠ political eps = limited ads |
+| **64.7** | Flagrant `@OfficialFlagrant` | comedy | owned | 1,665 | Schulz controversy-bait, big guests; ⚠ political eps = limited ads |
 | **62.9** | Dr Mike Israetel `@RenaissancePeriodization` | fitness | owned | 3,500 | #OutOfContextSeries *encourages* clips; meme-able myth-busting |
 | **62.6** | Theo Von `@TheoVon` | comedy | owned | 6,860 | Tolerant 3-channel system; huge; saturated |
 | **62.6** | Pop Culture Crisis `@PopCultureCrisis` | debate | owned | 507 | Daily culture-war hot takes; lower brand risk than F&F; open |
@@ -37,11 +37,11 @@ velocity and re-verify every "PAID" flag before committing — pools deplete, ro
 | **61.1** | Bryan Johnson `@bryanjohnson` | health | owned | 1,619 | "$2M/yr to not die" = inherently viral; Netflix tailwind; clip persona not prescriptions |
 | **60.7** | Chris Williamson `@ChrisWillx` | mindset | owned | 2,326 | Archetype clip-first pod; saturated |
 | **60.4** | Whatever `@whatever` | debate | owned | 198 | ⚠ **Main handle STALE (255d).** Velocity is in its clip/shorts ecosystem — source there |
-| **58.7** | Iman Gadzhi `@ImanGadzhi` | mindset | 💰whop | 242 | PAID Whop (~$5-50/1k); talking-head MMO; saturated |
+| **58.7** | Iman Gadzhi `@ImanGadzhi` | mindset | owned | 242 | Talking-head MMO; saturated — win on speed |
 | **58.1** | Jeff Nippard `@JeffNippard` | fitness | owned | 2,611 | Research-dense protocols; clips channel; moderate |
 | **56.8** | Modern Day Debate `@moderndaydebate` | debate | owned | 49 | Pure 1v1 debate; small but clip-friendly; open |
 | **49.8** | Dr Rhonda Patrick `@FoundMyFitness` | health | owned | 327 | Protocol clips; under-clipped vs authority |
-| **49.5** | Jay Shetty `@jayshetty` | mindset | 💰whop | 48 | PAID Whop (On Purpose); calm wisdom drops; program = saturated |
+| **49.5** | Jay Shetty `@jayshetty` | mindset | owned | 48 | On Purpose — calm wisdom drops; Shorts-native; saturated |
 | **45.2** | This Is Important `@thisisimportant` | comedy | owned | 14 | **Clearest white space** (no official clips channel); ⚠ iHeart Content-ID test |
 | **45.0** | Dr Gabrielle Lyon `@drgabriellelyon` | health | owned | 32 | "Muscle = organ of longevity"; whitespace women's-health |
 | **43.4** | Ed Mylett `@EdMylettShow` | mindset | owned | 61 | Scream-at-camera motivation = Shorts-native; mostly Shorts-led |
@@ -63,24 +63,11 @@ velocity and re-verify every "PAID" flag before committing — pools deplete, ro
 
 ---
 
-## 💰 Live paid-campaign board (Lane-1 cash, re-verify before acting)
+## 💰 Monetization note
 
-Permissioned bounties that pay per 1,000 views NOW. Pull `contentrewards.com/discover`
-before committing — it rotates ~82 concurrent campaigns daily. The **"60% rule":** only
-join campaigns with ≥60% of pool remaining (first-approved-first-paid until it drains).
-
-| Campaign | $/1k | Pool → remaining | Clip-friendly | New-clipper? |
-|---|---|---|---|---|
-| **Coinbase "Everything Exchange"** (ClipHaus) | $3.00 | $9k → ~95% | event footage | ✅ best rate×freshness |
-| **Shesbirdie** (meme edits, Virality) | $1.75 | $30k → ~89%, $250/clip cap | meme | ✅ most beginner-mechanical |
-| **Boring Money / David Heacock** (Clipix) | $1.50 | $20k → ~85% | podcast (ideal) | ✅ best content-type to learn on |
-| **Roobet** (streamer footage) | $1.00 | $250k → ~95% | streams | ✅ pool ~impossible to drain (⚠ gambling ad limits) |
-| **Mark Cuban / Trailblazers** (Clip Farm) | $1.00 | $4k → ~60% | celeb pod | ✅ borderline, low saturation |
-| **This Tempting Madness** (trailer) | $4.00 | $2k → 100% | cinematic (harder) | ✅ highest open rate, tiny pool |
-
-**Net-rate reality:** advertised $/1k is gross — after marketplace fee (9–25%) + agency cut
-(20–50%) + per-clip caps, plan ~40–65% lower. Niche sets rate: crypto/gambling ($4–30) >>
-finance/B2B/podcast ($3–7) >> music ($1–5) >> gaming CPM ($1–5; Kick often flat $50–300/clip).
+_(Whop cut 2026-06; pure owned-first.)_ Revenue is the **owned monetization stack** —
+TikTok Creator Rewards + YouTube Partner Program + affiliate + brand deals on the channels
+you own. Score each source by its owned-niche RPM path, not by any paid-campaign pool.
 
 ---
 

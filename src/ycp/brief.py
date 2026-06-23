@@ -80,21 +80,14 @@ def _test_section(a: dict) -> str:
 def _money_section(scored: pd.DataFrame) -> str:
     if scored.empty:
         return "No revenue captured yet."
-    whop = scored.get("whop_payout", pd.Series(dtype=float)).fillna(0).sum()
     ads = scored.get("ad_revenue", pd.Series(dtype=float)).fillna(0).sum()
-    by_lane = (scored.assign(rev=scored.get("whop_payout", 0).fillna(0)
-                             + scored.get("ad_revenue", 0).fillna(0))
-               .groupby("lane")["rev"].sum().sort_values(ascending=False))
-    by_plat = (scored.assign(rev=scored.get("whop_payout", 0).fillna(0)
-                             + scored.get("ad_revenue", 0).fillna(0))
+    by_plat = (scored.assign(rev=scored.get("ad_revenue", 0).fillna(0))
                .groupby("platform")["rev"].sum().sort_values(ascending=False))
-    lane_line = ", ".join(f"{k} {_money(v)}" for k, v in by_lane.items())
     plat_line = ", ".join(f"{k} {_money(v)}" for k, v in by_plat.items())
-    lead = ("Whop is carrying the revenue — keep feeding the cash engine."
-            if whop >= ads else
-            "Ad revenue is leading — owned channels are maturing, protect their YPP status.")
-    return (f"- Whop bounties: **{_money(whop)}**  ·  Ad revenue: **{_money(ads)}**\n"
-            f"- By lane: {lane_line}\n- By platform: {plat_line}\n- {lead}")
+    lead = ("Ad revenue from owned channels — protect their YPP status "
+            "and scale the proven winners.")
+    return (f"- Ad revenue: **{_money(ads)}**\n"
+            f"- By platform: {plat_line}\n- {lead}")
 
 
 def build(df: pd.DataFrame, week_start: str | None = None) -> str:

@@ -4,22 +4,22 @@
 **Operator:** Jay (infrastructure + sourcing + QC)
 **Repurpose + distribution engine:** Ssemble (Business plan — unlimited social accounts)
 **Goal:** $15,000+/month, durable, on a closed-loop **automated** system
-**Strategy:** **Owned-first** — your faceless channels are the asset; Whop clipping is an *optional* turbo. _Reframed 2026-06-22; supersedes the Whop-first framing from the original build._
+**Strategy:** **Owned-first** — your faceless channels are the asset; the owned monetization stack (TikTok Creator Rewards + YPP + affiliate + brand deals) is the revenue. _(Whop cut 2026-06; pure owned-first — supersedes the original Whop-first framing.)_
 **Last updated:** 2026-06-22 (owned-first reconciliation)
 
 ---
 
 ## 0. Bottom line up front (read this first)
 
-**Reframed 2026-06-22 → OWNED-FIRST.** The facts below are unchanged; the *conclusion* is. We build owned channels as the asset and keep Whop as an optional turbo. Here's why:
+**OWNED-FIRST (Whop cut 2026-06).** The facts below are unchanged; the *conclusion* is. We build owned channels as the asset and monetize the owned stack. Here's why:
 
-1. **Shorts ad revenue *alone* can't get you there — that's why we stack.** YouTube Shorts ad rev pays only **$0.03–$0.07 per 1,000 views**; to hit $15K on that alone you'd need **~300–500 million views/month** (top-1%). The fix isn't one magic source — it's the owned *stack* (TikTok Creator Rewards + YPP + affiliate + brand deals, §9). Whop clipping does pay far more per view (**$0.50–$3/1K**, ~30–75×), which is why it's a useful *optional* turbo — but it's gig work you don't own, so never the foundation. ([Whop rates](https://whop.com/blog/what-is-content-clipping/), [Shorts RPM](https://mediacube.io/en-US/blog/youtube-shorts-rpm))
+1. **Shorts ad revenue *alone* can't get you there — that's why we stack.** YouTube Shorts ad rev pays only **$0.03–$0.07 per 1,000 views**; to hit $15K on that alone you'd need **~300–500 million views/month** (top-1%). The fix isn't one magic source — it's the owned *stack* (TikTok Creator Rewards + YPP + affiliate + brand deals, §9), and you **own** every channel feeding it. ([Shorts RPM](https://mediacube.io/en-US/blog/youtube-shorts-rpm))
 
 2. **The July 2025 "inauthentic content" crackdown did NOT ban clips.** YouTube explicitly confirmed clips, compilations, commentary, and reactions are *still monetizable* — what got killed is **mass-produced, templated, zero-effort content that's "easily replicable at scale."** Pure auto-reuploads of someone else's clip with a caption slapped on = the exact thing that now gets a channel demonetized *channel-wide*. Transformation is the line between a monetized asset and a dead channel. ([YouTube policy](https://support.google.com/youtube/answer/1311392?hl=en), [Social Media Today](https://www.socialmediatoday.com/news/youtube-clarifies-monetization-update-inauthentic-repeated-content/752892/))
 
-3. **Owned channels are the asset; the owned *stack* is the cash — Whop is just optional turbo.** YPP eligibility takes months (1,000 subs + 10M Shorts views/90d, or 4,000 watch hours), but you don't wait on it: **TikTok Creator Rewards** pays on 1-min+ videos far sooner (~$0.40–$1.00/1K, ~10–20× Shorts ad rev), **affiliate** earns on even a small engaged channel, and **brand deals** (Rising Tides' agency edge) stack on top. Whop pays this week if you want it — *permissioned campaigns only* — but it's a turbo, not the plan.
+3. **Owned channels are the asset; the owned *stack* is the cash.** YPP eligibility takes months (1,000 subs + 10M Shorts views/90d, or 4,000 watch hours), but you don't wait on it: **TikTok Creator Rewards** pays on 1-min+ videos far sooner (~$0.40–$1.00/1K, ~10–20× Shorts ad rev), **affiliate** earns on even a small engaged channel, and **brand deals** (Rising Tides' agency edge) stack on top.
 
-**So the play is owned-first, with Whop as an optional turbo.** Your faceless channels are the appreciating, automatable, sellable asset — that's the build. The owned monetization stack (TikTok Creator Rewards + YPP + affiliate + brand deals) is the path to $15K; Whop is a one-tap accelerant for weeks you want fast cash. The *same clips* feed everything. **Honest tradeoff:** owned-first is slower to the *first* dollar than Whop-first would be — that's the price of owning the asset instead of renting it. Full reasoning in §1–2.
+**So the play is owned-first.** Your faceless channels are the appreciating, automatable, sellable asset — that's the build. The owned monetization stack (TikTok Creator Rewards + YPP + affiliate + brand deals) is the path to $15K. **Honest tradeoff:** owned-first is slower to the *first* dollar than renting distribution would be — that's the price of owning the asset instead of renting it. Full reasoning in §1–2.
 
 ---
 
@@ -31,36 +31,26 @@
 |---|---|---|---|---|
 | **Shorts ad rev only** (conservative $0.03/1K) | $30 / million | **333M** | 11.1M | Top-1% operation. 6–12 mo build. |
 | **Shorts ad rev only** (good $0.05/1K) | $50 / million | **200M** | 6.7M | Still enormous. |
-| **Whop only** (conservative $1/1K) | $1,000 / million | **10M** | 333K | Achievable in 60–90 days with volume. |
-| **Whop only** (good $2/1K) | $2,000 / million | **5M** | 167K | One portfolio of channels can do this. |
-| **The Owned Stack** (TikTok Rewards + YPP + affiliate + brand deals) | mixed | ~15–25M total | ~500–800K | **The realistic $15K plan** — optional Whop turbo on top. |
+| **The Owned Stack** (TikTok Rewards + YPP + affiliate + brand deals) | mixed | ~15–25M total | ~500–800K | **The realistic $15K plan** — you own every channel. |
 
-**Takeaway:** pure Shorts-ad-rev to $15K is a top-1% grind (hundreds of millions of views/mo). The owned *stack* — TikTok Creator Rewards (the fast owned cash) + YPP + affiliate + brand deals — gets there at a fraction of that, and you **own** every channel. Whop would be faster to the first dollar, so we keep it as an optional turbo — but the asset is owned-first.
+**Takeaway:** pure Shorts-ad-rev to $15K is a top-1% grind (hundreds of millions of views/mo). The owned *stack* — TikTok Creator Rewards (the fast owned cash) + YPP + affiliate + brand deals — gets there at a fraction of that, and you **own** every channel.
 
 ### Assumptions to verify Day 1 (don't take my numbers as gospel — confirm)
 - **Ssemble credit model:** Business = **2,600 video credits/year (~7/day)**. Confirm whether 1 credit = *one source video processed* (→ many clips per credit, great) or *one clip export* (→ a real volume ceiling). This single fact decides whether Ssemble alone can carry the volume or whether we run the hybrid pipeline in §5. ([Ssemble pricing](https://www.ssemble.com/pricing))
-- **Realized Whop rate:** The $2–3/1K is the *advertised* rate; after approval caps and competition, plan around **$1–1.5/1K realized** until you're a top clipper in a campaign.
+- **Realized TikTok Creator Rewards rate:** advertised rates move; plan around a conservative **$0.40–$1.00/1K realized** and re-verify current program terms before relying on a number.
 - **Your niche RPM:** Finance/business clips earn ~10x comedy/lifestyle on YouTube. Niche selection (§4, Stage 1) directly moves the YPP number.
 
 ---
 
-## 2. The two-lane operating model
+## 2. The operating model — owned channels (single lane)
 
-Everything downstream runs in one of two lanes. Same sourcing, same tools, different objective. **Lane 2 (owned) is the primary build; Lane 1 (Whop) is the optional turbo** — the original Whop-first emphasis is reversed (see §0).
+_(Whop cut 2026-06; the original two-lane model collapsed to one — pure owned-first.)_ Everything downstream feeds **owned faceless channels** — there is no rented/permissioned lane anymore.
 
-### Lane 1 — OPTIONAL TURBO (Whop clipping campaigns — permissioned cash)
-- **What:** Clip creators who *run paid clipping campaigns* (podcasters, streamers, info-creators). They *want* clippers and pay per 1,000 views from a bounty pool.
-- **Why it's safe:** It's *permissioned* — you're paid to distribute their content. Zero copyright-strike risk, zero YPP monetization risk (you're earning from the bounty, not the channel's ads).
-- **Optimize for:** Speed + volume. AI auto-clips are fine here. Get views, get paid.
-- **Pays:** This week.
-
-### Lane 2 — THE CORE ASSET (owned faceless channels — your $15K engine)
+### The core asset — owned faceless channels (your $15K engine)
 - **What:** Niche/theme channels you own (e.g., "best podcast moments," "[niche] breakdowns," reframed challenge/comedy clips with a hook + commentary angle).
-- **Why it's the long game:** You own the audience, the channel appreciates, it monetizes via YPP *and* becomes a sellable asset, *and* gives you the distribution that makes you a top clipper in Lane 1.
+- **Why it's the long game:** You own the audience, the channel appreciates, and it monetizes via the owned stack (TikTok Creator Rewards + YPP + affiliate + brand deals) *and* becomes a sellable asset.
 - **Optimize for:** Transformation + retention. These MUST clear the "inauthentic content" bar — original packaging, commentary, editorial point of view, not template slop.
-- **Pays:** Month 3+ (after YPP threshold), then compounds.
-
-**The double-dip:** A clip you make for a Lane 2 channel, when the source creator is running a Whop campaign, *also* gets submitted to Lane 1. One edit, two income lines. This is the core efficiency.
+- **Pays:** TikTok Creator Rewards + affiliate land early; YPP turns on Month 3+ (after threshold), then it compounds.
 
 ---
 
@@ -69,7 +59,7 @@ Everything downstream runs in one of two lanes. Same sourcing, same tools, diffe
 > One channel-wide demonetization or a 3-strike termination wipes out months of work. These are non-negotiable.
 
 ### 3.1 The transformation standard (beats the inauthentic-content policy)
-Every clip on an *owned* channel (Lane 2) must add at least one layer of original human value:
+Every clip on an *owned* channel must add at least one layer of original human value:
 - **Reframe / re-edit** — your own cut, pacing, hook, B-roll, zooms, not the raw clip.
 - **Commentary or context** — text overlay analysis, a take, a "why this matters," a question to the audience.
 - **Curation with a thesis** — the channel has a clear editorial identity, not "random viral clips."
@@ -78,8 +68,8 @@ Every clip on an *owned* channel (Lane 2) must add at least one layer of origina
 Avoid the kill-zone: identical template across every video, zero-variation auto-captions on someone else's raw footage, channels that are obviously "easily replicable at scale."
 
 ### 3.2 Copyright / Content ID
-- Prefer sources who **explicitly allow clipping** (Whop campaigns, creators with public clip programs, Creative Commons). Permissioned = no strike risk.
-- For Lane 2 transformation channels, the transformation + commentary is your fair-use posture — but understand it's a *posture*, not a guarantee. Keep clips short, add value, never reupload full segments.
+- Prefer sources who **explicitly allow clipping** (creators with public clip programs, Creative Commons). Permissioned = no strike risk.
+- For owned transformation channels, the transformation + commentary is your fair-use posture — but understand it's a *posture*, not a guarantee. Keep clips short, add value, never reupload full segments.
 - **Music is the silent killer.** Background music in clips triggers Content ID instantly. Strip/replace audio beds where possible.
 
 ### 3.3 Account infrastructure — the Jay tasks, done safely
@@ -104,19 +94,18 @@ Five stages. Each shows **what happens → who/what does it → automation level
 ### Stage 1 — SOURCE (find the videos worth clipping)
 - **What:** Build a ranked daily queue of source videos with the highest clip potential.
 - **How:**
-  - Maintain a **Source Creator List** per niche — split into *Whop-campaign creators* (Lane 1, priority) and *big evergreen creators* (Lane 2).
+  - Maintain a **Source Creator List** per niche — prioritize *clip-friendly creators* (public clip programs / clipping encouraged) and *big evergreen creators*.
   - Daily, pull each creator's newest + top-performing long-form (sorted by views/velocity) via the **YouTube Data API** or `yt-dlp`. Rank by view-velocity (views ÷ hours since upload).
-  - For Whop: pull the **active campaign list** off Whop and prioritize creators with funded bounty pools and good rates.
 - **Automation:** *Semi-auto.* A daily sourcing script ranks candidates and drops the top N into the queue. Jay confirms the final picks (5 min). → **This is the first thing worth building (§Next steps).**
 - **Output:** `Daily Source Queue` (creator, video URL, view-velocity, lane, target channels).
 
 ### Stage 2 — REPURPOSE (clip + transform)
 - **What:** Turn each source video into 3–10 vertical Shorts.
 - **How:**
-  - **Lane 1 (volume):** Ssemble AI clipping finds viral moments → auto-captions + face-tracking + hook titles. Fast. Or the hybrid local pipeline (§5) for raw volume.
-  - **Lane 2 (transformation):** Start from the AI clip, then add the value layer — your hook, your text-overlay take, trimmed pacing, your caption style. This is where a human (Jay or an editor) earns the monetization.
+  - **Raw volume:** Ssemble AI clipping finds viral moments → auto-captions + face-tracking + hook titles. Fast. Or the hybrid local pipeline (§5) for raw volume.
+  - **Transformation:** Start from the AI clip, then add the value layer — your hook, your text-overlay take, trimmed pacing, your caption style. This is where a human (Jay or an editor) earns the monetization.
   - One edit is exported **9:16 once, reused across YouTube Shorts + TikTok + IG Reels** (3 posts per edit).
-- **Automation:** *AI-assisted, human-finished for Lane 2.* Ssemble does 80%, the transformation layer is the 20% that keeps you monetized.
+- **Automation:** *AI-assisted, human-finished.* Ssemble does 80%, the transformation layer is the 20% that keeps you monetized.
 - **Output:** Clips in a review queue, tagged: source creator, format, hook type, length, target channel, lane.
 
 ### Stage 3 — APPROVE (QC gate)
@@ -124,7 +113,7 @@ Five stages. Each shows **what happens → who/what does it → automation level
 - **How:** Clips land in a **review board** (Notion or a simple Slack approval flow — you have both connected). Reviewer thumbs up/down + optional tweak note. Approved → scheduled. Rejected → killed or sent back.
 - **Approve criteria checklist:**
   - [ ] Hook lands in first 1–2 seconds
-  - [ ] Transformation present (Lane 2)
+  - [ ] Transformation present
   - [ ] No copyrighted music bed / Content-ID risk
   - [ ] Caption accuracy + readability
   - [ ] Correct target channel + niche fit
@@ -149,7 +138,7 @@ Five stages. Each shows **what happens → who/what does it → automation level
 | Phase | Channels live | Edits/day (unique) | Posts/day (×3 platforms) | Notes |
 |---|---|---|---|---|
 | **Weeks 1–2** (warm-up) | 4–6 warming | 5–10 | 15–30 | Accounts warming; low volume, build habit + DB. |
-| **Weeks 3–6** (ramp) | 8–12 | 15–25 | 45–75 | Whop campaigns live, closed loop running. |
+| **Weeks 3–6** (ramp) | 8–12 | 15–25 | 45–75 | Owned channels live, closed loop running. |
 | **Weeks 7–12** (scale winners) | 12–15 | 25–35 | 75–100+ | Double down on validated formats only. |
 
 **Rule of thumb:** ~4–6 Shorts/channel/day on YouTube. Volume + iteration is the whole game early — most clips do 1–5K views, the winners spike to 100K–1M+. You're buying lottery tickets and then printing more of whatever wins.
@@ -162,7 +151,7 @@ Business = **~2,600 credits/year (~7/day)**. If 1 credit = 1 export, that **cann
    - `yt-dlp` → download source videos (free, unlimited)
    - `ffmpeg` + scene/silence detection → batch-cut raw clips (free, unlimited)
    - `whisper` → auto-captions locally (free, you already run this)
-   - **Ssemble reserved for:** AI viral-moment *detection* on hero candidates, the polished Lane-2 transformation clips, and — critically — the **auto-post scheduler** (its real superpower for you is unlimited-account distribution, not just clipping).
+   - **Ssemble reserved for:** AI viral-moment *detection* on hero candidates, the polished owned-channel transformation clips, and — critically — the **auto-post scheduler** (its real superpower for you is unlimited-account distribution, not just clipping).
 
    This keeps raw-volume clipping free and uncapped, and spends Ssemble credits only where they add the most value. It also fits your existing local-automation stack.
 
@@ -184,7 +173,6 @@ One row per posted clip, in a **Clip Performance DB** (Google Sheet to start, SQ
 | length_sec | `34` |
 | views_24h, views_7d, retention_%, swipe_away_% | from YouTube Analytics API |
 | rpm, ad_revenue | YPP channels |
-| whop_payout | Lane 1 |
 | virality_score | computed (below) |
 
 ### 6.2 How we score
@@ -195,12 +183,12 @@ Every Monday, an automated one-pager:
 - 🟢 **Scale:** top-decile combos (e.g., "Flagrant debate-clips, question hook, 25–35s → 4.2x avg views — make 3x more").
 - 🔴 **Kill:** bottom-decile (stop wasting edits here).
 - 🆕 **Test:** 1–2 new format/creator bets.
-- 💰 **Whop focus:** which active campaigns paid best per view this week → where to point volume.
+- 💰 **Money focus:** which niches/channels earned best per view this week → where to point volume.
 
 This brief **becomes next week's Stage 1 sourcing spec.** That's the closed loop: post → measure → score → decide → source to the decision → post. Who/what/format/where to double down, answered with data every week.
 
 ### 6.4 Tooling
-- **Capture:** Daily script hits YouTube Analytics API + logs Whop payouts → appends to the DB. (Build target — see Next steps.)
+- **Capture:** Daily script snapshots public views (and YouTube Analytics once channels hit YPP) → appends to the DB. (Build target — see Next steps.)
 - **Score + Brief:** Weekly aggregation. Per your ops rules, the heavy roll-up/scoring is **offloaded to local Ollama** (it's repetitive batch work) — Claude builds the script, Ollama grinds the numbers, you read the brief.
 - **Surface:** Brief drops into Slack/Notion every Monday.
 
@@ -212,9 +200,9 @@ This brief **becomes next week's Stage 1 sourcing spec.** That's the closed loop
 |---|---|
 | **Jay** | Account infrastructure (safe setup, warming), Stage 1 sourcing confirmation, Stage 3 QC approval. The human operator. |
 | **Ssemble** | Stage 2 AI clipping + Stage 4 auto-post distribution (unlimited accounts). The engine. |
-| **Editor (Jay or a hire)** | The Lane-2 transformation layer — the 20% that keeps channels monetized. Add when scaling Lane 2. |
+| **Editor (Jay or a hire)** | The owned-channel transformation layer — the 20% that keeps channels monetized. Add when scaling. |
 | **Automation (Claude-built)** | Sourcing rank script, closed-loop capture, weekly scoring + Double-Down Brief. The nervous system. |
-| **Eric** | Strategy, niche/creator selection, Whop campaign choices, the weekly double-down decision, partnerships + cross-promo. |
+| **Eric** | Strategy, niche/creator selection, the weekly double-down decision, partnerships + cross-promo. |
 
 ---
 
@@ -222,22 +210,21 @@ This brief **becomes next week's Stage 1 sourcing spec.** That's the closed loop
 
 | | Focus | Milestones | Target revenue |
 |---|---|---|---|
-| **Month 1** | Infrastructure + first owned channels | 8–12 warmed channels; autopilot wired; Concepts 1–2 live; closed-loop DB running; (optional Whop turbo for early cash) | **$0–1K** (TikTok Rewards begins; optional Whop) |
+| **Month 1** | Infrastructure + first owned channels | 8–12 warmed channels; autopilot wired; Concepts 1–2 live; closed-loop DB running | **$0–1K** (TikTok Rewards begins) |
 | **Month 2** | Volume + the loop compounding | 45–75 posts/day; first TikTok Creator Rewards + affiliate revenue; Double-Down Brief steering decisions; channels approaching YPP threshold | **$2–5K** (TikTok Rewards + affiliate core) |
 | **Month 3** | Scale winners + YPP turns on | Scale only validated concepts; first channels cross YPP (1K subs / 10M Shorts views per 90d); first brand deal into an owned channel | **$8–15K** (TikTok + YPP + affiliate + brand deals) |
-| **Steady state** | Owned network = compounding asset | Portfolio of monetized owned channels + affiliate + brand deals; optional Whop turbo | **$15K+ and climbing** |
+| **Steady state** | Owned network = compounding asset | Portfolio of monetized owned channels + affiliate + brand deals | **$15K+ and climbing** |
 
 ---
 
 ## 9. The full monetization stack (owned-first; every income line)
 
-1. **TikTok Creator Rewards** — the fastest *owned* cash: ~$0.40–$1.00/1K on 1-min+ videos (~10–20× YouTube Shorts ad rev). No Whop needed. Verify current rates.
+1. **TikTok Creator Rewards** — the fastest *owned* cash: ~$0.40–$1.00/1K on 1-min+ videos (~10–20× YouTube Shorts ad rev). Verify current rates.
 2. **YouTube Partner Program** — Shorts ad-rev share (45% of pool) + high-RPM long-form (finance/business RPM $5–30) on owned channels. The compounding asset.
 3. **Affiliate / product links** — niche-relevant offers in pinned comments / bios; often out-earns ad rev on a small engaged channel.
 4. **Direct brand deals** — Rising Tides is a marketing agency: sell sponsorships straight into your own channels as they grow. Highest-margin owned line.
 5. **Channel sales** — aged, monetized faceless channels are sellable assets ($X-thousands each).
-6. **Whop clipping bounties (OPTIONAL turbo)** — $0.50–$3/1K, permissioned, immediate. Flip on for fast cash; never the foundation.
-7. **Cross-promotion into Rising Tides wins** — point distribution at what you're already winning with; clip channels become an owned media network.
+6. **Cross-promotion into Rising Tides wins** — point distribution at what you're already winning with; clip channels become an owned media network.
 
 ---
 
@@ -245,18 +232,16 @@ This brief **becomes next week's Stage 1 sourcing spec.** That's the closed loop
 
 | Risk | Severity | Mitigation |
 |---|---|---|
-| Channel-wide demonetization (inauthentic content) | 🔴 High | Transformation standard on all Lane-2 clips (§3.1). Lane 1 is unaffected (not your YPP). |
+| Channel-wide demonetization (inauthentic content) | 🔴 High | Transformation standard on every owned-channel clip (§3.1). |
 | Copyright strikes / Content ID | 🔴 High | Prefer permissioned sources; strip music; short transformed clips, never full reuploads. |
 | Account network ban (VPN/burner pattern) | 🟠 Med-High | Residential IPs, gradual creation, warm accounts, fewer healthier channels (§3.3). |
 | Ssemble credit ceiling throttles volume | 🟠 Med | Verify credit model Day 1; run hybrid local pipeline (§5). |
-| Whop bounty pools cap out / dry up | 🟡 Med | Diversify across campaigns; build owned channels so you're not dependent on any one pool. |
-| Pure-YPP timeline disappoints | 🟡 Med | TikTok Creator Rewards + affiliate give owned cash flow well before YPP turns on; optional Whop turbo as a faster bridge if needed. |
+| Pure-YPP timeline disappoints | 🟡 Med | TikTok Creator Rewards + affiliate give owned cash flow well before YPP turns on. |
 
 ---
 
 ### Sources
 - [YouTube channel monetization policies (official)](https://support.google.com/youtube/answer/1311392?hl=en)
 - [YouTube clarifies inauthentic/reused content update — Social Media Today](https://www.socialmediatoday.com/news/youtube-clarifies-monetization-update-inauthentic-repeated-content/752892/)
-- [Whop — what is content clipping (rates)](https://whop.com/blog/what-is-content-clipping/)
 - [YouTube Shorts RPM 2026 — Mediacube](https://mediacube.io/en-US/blog/youtube-shorts-rpm)
 - [Ssemble pricing](https://www.ssemble.com/pricing) · [Ssemble AI clipping + auto-post](https://www.ssemble.com/tools/ai-clipping)

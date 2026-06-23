@@ -1,40 +1,35 @@
 # Copy to config/niches.yaml and fill in. This seeds Stage 1 sourcing.
 # `handle` = a YouTube @handle OR a full channel /videos URL.
-# `lane`: whop = permissioned cash engine · owned = your YPP transformation channel.
-# `runs_whop_campaign`: confirm LIVE in the Whop dashboard before relying on it.
+# `lane`: owned = your YPP transformation channel (the only lane — pure owned-first).
 #
 # The niche-research agent fills the real file; this is the shape + a few
 # clip-friendly examples to smoke-test against.
 
 niches:
   - name: business-mindset
-    lane_default: whop
+    lane_default: owned
     creators:
       - name: "Diary of a CEO"
         handle: "@TheDiaryOfACEO"
-        lane: whop
-        runs_whop_campaign: false   # verify live
+        lane: owned
         notes: "High-RPM business niche; long episodes = many clip points."
       - name: "Modern Wisdom"
         handle: "@ChrisWillx"
         lane: owned
-        runs_whop_campaign: false
         notes: "Story-payoff + cliffhanger hooks travel well."
 
   - name: comedy-podcast
-    lane_default: whop
+    lane_default: owned
     creators:
       - name: "Flagrant"
         handle: "@FlagrantClips"
-        lane: whop
-        runs_whop_campaign: false   # verify live
+        lane: owned
         notes: "Debate-moment + question hooks = top combo in testing."
 
   - name: creator-economy
-    lane_default: whop
+    lane_default: owned
     creators:
       - name: "Example Streamer"
         handle: "https://www.youtube.com/@example/videos"
-        lane: whop
-        runs_whop_campaign: false
-        notes: "Replace with real Vyro/Whop campaign sources."
+        lane: owned
+        notes: "Replace with real owned-channel source creators."

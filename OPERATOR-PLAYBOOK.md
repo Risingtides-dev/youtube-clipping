@@ -4,10 +4,10 @@
 Follow it top to bottom. If a step makes you ask a question, that's a bug — flag it
 and it gets fixed in the next loop cycle.
 
-**The one-sentence model:** clip viral moments from big creators → post across many
-channels → get paid by Whop bounties NOW (cash) while your owned channels grow toward
-YouTube monetization (asset). Whop pays ~30–75× more per view than YouTube ad revenue,
-so **Whop is your paycheck and owned channels are your savings account.**
+**The one-sentence model:** clip viral moments from big creators → post across many **owned**
+channels → monetize the owned stack (TikTok Creator Rewards + YouTube Partner Program +
+affiliate + brand deals) as the channels grow. **Your owned channels are the appreciating,
+automatable, sellable asset.** _(Whop cut 2026-06; pure owned-first.)_
 
 > Maintained by the optimization loop (`GOAL-AND-LOOP.md`). Gets sharper every cycle.
 
@@ -15,16 +15,16 @@ so **Whop is your paycheck and owned channels are your savings account.**
 
 ## 0. Your $10K/month scorecard (know your numbers)
 
-You hit $10K when **views × rate** clears it. Whop-first, the target is reachable on
-~5–10M views/month — not the 200M+ that pure YouTube ad revenue would need.
+You hit $10K when **views × rate** clears it. On the owned monetization stack (TikTok Creator
+Rewards + YPP + affiliate + brand deals), the target is reachable at a fraction of the 200M+
+views/month that pure YouTube Shorts ad revenue alone would need.
 
 | Lever | Month 1 target | Month 2 | Month 3 (≈$10K) |
 |---|---|---|---|
 | Channels live (warmed) | 8–12 | 12–15 | 12–15 |
 | Posts/day (across YT+TikTok+Reels) | 15–30 | 45–75 | 75–100 |
-| Whop campaigns active | 5–10 | 8–12 | 10–15 |
 | Monthly views (all channels) | 1–2M | 3–6M | **6–10M** |
-| Realized $/1K (Whop blended) | ~$1.00 | ~$1.25 | ~$1.50 |
+| Realized $/1K (owned stack, blended) | ~$1.00 | ~$1.25 | ~$1.50 |
 | **Est. monthly income** | **$1–2K** | **$3–5K** | **$8–12K** |
 
 **Check yourself weekly:** open `data/latest-brief.md`. If your views aren't climbing,
@@ -41,14 +41,12 @@ monetization (more funded campaigns, submitted in-window). Fix that one thing.
 2. **Clip** — run each source video through Ssemble AI clipping (or the hybrid pipeline,
    §4). Target 5–10 clips per source video.
 3. **Transform owned-channel clips** (§3 guardrails) — add your hook, cut, and a take.
-   Whop clips can stay raw; owned-channel clips MUST be transformed.
+   Every owned-channel clip MUST be transformed.
 4. **Approve** — clips post to the Slack `#clip-qc` channel automatically. React ✅ to
    approve, ❌ to reject. Run the §2 checklist on each.
 5. **Distribute** — approved clips schedule through Ssemble to all channels at best times.
    Hands-off after approval.
-6. **Submit to Whop** — for every clip from a Whop-campaign creator, submit the posted
-   link to that campaign **within the submission window** (§5). This is how you get paid.
-7. Done. Capture + scoring run on cron; the weekly brief tells you what to double down on.
+6. Done. Capture + scoring run on cron; the weekly brief tells you what to double down on.
 
 ---
 
@@ -60,7 +58,7 @@ Before you react ✅ in Slack, every clip must pass:
 - [ ] **No copyrighted music bed** — strip/replace it. Music = instant Content-ID claim.
 - [ ] **Captions accurate and readable.**
 - [ ] **Right channel + niche fit.**
-- [ ] **Whop rules met** (if applicable): correct platform, length, required tags, 9:16.
+- [ ] **Platform-ready**: correct platform, length, required tags, 9:16.
 
 If it fails any box → ❌ reject (or send back for a fix). One bad owned-channel clip can
 demonetize the whole channel.
@@ -72,7 +70,7 @@ demonetize the whole channel.
 | Rule | Why |
 |---|---|
 | **Transform every owned-channel clip** (your hook/cut/commentary) | Raw reuploads get the channel demonetized *channel-wide* under YouTube's inauthentic-content policy. |
-| **Permissioned / Whop sources first** | Zero copyright-strike risk; you're paid to post their content. |
+| **Clip-friendly / permissioned sources first** | Lowest copyright-strike risk; many creators publicly encourage clipping. |
 | **Residential IPs, warm accounts 7–14 days, create gradually** | Datacenter-VPN bursts get whole account networks banned together. |
 | **No copyrighted music** | Content-ID finds it instantly → claims/strikes. |
 | **Channel health > raw output** | A ban zeroes an operator. Protect the accounts above all. |
@@ -88,31 +86,25 @@ demonetize the whole channel.
 - **Hybrid pipeline (free, uncapped — for volume)** — `yt-dlp` (download) + `ffmpeg`
   (cut) + `whisper` (captions). Reserve Ssemble credits for hero clips + auto-posting.
 - **The `ycp` system** (this repo) — sourcing queue, Slack QC, metric capture, weekly brief.
-- **Whop / Vyro / Content Rewards** — where the bounties are (§5).
 
 ---
 
-## 5. Whop — how you actually get paid (don't skip a single rule)
+## 5. Owned monetization — how you actually get paid
 
-These are the top reasons clippers DON'T get paid. Treat as law:
-- **Submit inside the window** — many campaigns require submission **within 1 hour** of
-  posting. Miss it = $0 even if the clip goes viral.
-- **Set your verification code** — add the 6-char code to your social profile bio so Whop
-  can track your views. No code = no approval.
-- **Organic views only** — bought/bot views = permanent ban + forfeiture across all campaigns.
-- **Hit the minimum view threshold** before a clip is eligible.
-- **Check the pool before joining** — only join campaigns with **60%+ budget remaining** and
-  **$2+/1K**. "Paid in order of approval" means if the pool empties before your approval, you
-  get nothing. Speed matters.
-- **Stay on-platform** — anyone DMing you a "campaign" on Telegram/Discord is a scam.
+_(Whop cut 2026-06; pure owned-first.)_ Revenue comes from the **owned monetization stack** —
+you own every channel, so the income compounds instead of evaporating when a campaign pool dries up.
+- **TikTok Creator Rewards** — the fastest owned cash: ~$0.40–$1.00/1K on 1-min+ videos
+  (~10–20× YouTube Shorts ad rev). Turns on well before YPP. Verify current rates.
+- **YouTube Partner Program (YPP)** — eligibility takes months (1,000 subs + 10M Shorts
+  views/90d, or 4,000 watch hours). Don't wait on it; it matures in the background.
+- **Affiliate** — earns on even a small, engaged channel. Wire relevant offers per niche.
+- **Brand deals** — Rising Tides' agency edge; stack these on top once a channel has an audience.
 
-**Campaign vetting (green vs red):** ✅ $2+/1K · $5K+ pool · 60%+ remaining · visible payout
-history · ≤14-day validation. 🚩 pool <20% · no payout history · <$1/1K · 30+ day holds ·
-unverified creator · off-platform contact.
+**Channel health is the meta-rule:** one channel-wide demonetization costs months. Transform every
+clip, keep music clean, warm accounts on residential IPs — protect the asset above raw output.
 
-**Stack:** Whop/Content Rewards (variety) + Vyro ($3/1K floor, no follower minimum). Realistic
-solo ramp: ~$50–200 (mo 1) → $300–1,000+ (mo 3) per operator *on Whop alone* — owned-channel
-YPP + affiliates stack on top toward $10K.
+**Realistic ramp:** ~$50–200 (mo 1, TikTok Rewards + early affiliate) → $300–1,000+ (mo 3) per
+operator, with YPP + brand deals stacking on top toward $10K as the channels mature.
 
 ---
 
@@ -123,7 +115,7 @@ YPP + affiliates stack on top toward $10K.
 | `ycp source` returns empty | Check creator handles in `config/niches.yaml` are valid `@handles`/URLs. |
 | A channel got flagged/str?iked | Stop posting to it; review §3. Never share AdSense across the network. |
 | Views flat week over week | Open `data/latest-brief.md` → make more of the 🟢 combos, kill the 🔴. |
-| Not getting paid on Whop | Re-check §5: window, verification code, min views, pool remaining. |
+| Owned revenue not landing | Re-check §5: TikTok Creator Rewards eligibility, affiliate links live, channel monetization status. |
 | Ssemble out of credits | Switch to the hybrid pipeline (§4) for volume; save credits for posting. |
 | Slack QC not posting | Confirm `.env` has `SLACK_BOT_TOKEN`/`SLACK_APP_TOKEN`/`SLACK_QC_CHANNEL` and `ycp qc-listen` is running. |
 
@@ -132,5 +124,6 @@ YPP + affiliates stack on top toward $10K.
 ## 7. First-week setup (one time)
 
 Follow `LAUNCH-CHECKLIST.md` (in this same folder): Cloudflare
-emails → warm 8–12 channels → connect to Ssemble → join 5–10 Whop campaigns → fill
-`config/niches.yaml` → run `ycp init` → first clips live by end of week 2.
+emails → warm 8–12 owned channels → connect to Ssemble → confirm owned monetization
+(TikTok Creator Rewards / affiliate) → fill `config/niches.yaml` → run `ycp init` → first
+clips live by end of week 2.

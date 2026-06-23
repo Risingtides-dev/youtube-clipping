@@ -40,7 +40,7 @@ sources, zero defined angles." Cycle 1 = create them with a real first batch.
 - **Velocity:** live yt-dlp non-flat scan of 29 candidate channels (top-4 recent uploads
   each) → real peak views/hour. Parallelized via Python threadpool (the repo's flat-mode
   `sourcing._ytdlp_json` returns no view_count for these channels — see gap below).
-- **Live campaigns:** swept the Whop/Vyro/ContentRewards economy — verified funded pools
+- **Live campaigns (historical — Whop cut 2026-06):** swept the paid-clipping economy — verified funded pools
   (Coinbase $3/1k ~95% left, Boring Money $1.50/1k, Shesbirdie $1.75/1k, Roobet $250k pool,
   Mark Cuban $1/1k ~60%), plus paid YouTube sources (Diary of a CEO/Clipster, Iman Gadzhi,
   Jay Shetty, Iced Coffee Hour).
@@ -61,8 +61,8 @@ with the position-vs-protected-group guardrail baked in.
   documented comparable wins (Mehdi Hasan Surrounded, "who pays" 1.8M clip). **Greenlit.**
 - *Finance-conflict angle:* Ramit "Money for Couples" — real format, US-top-RPM, verified
   under-clipped (thin existing field). **Greenlit as highest-EV open lane.**
-- *Cash engine:* Mark Cuban/Trailblazers PAID $1/1k, $4k pool ~60% remaining (passes the 60%
-  rule), low saturation. **Greenlit for immediate test.**
+- *Business/finance authority:* Mark Cuban/Trailblazers — low saturation, high-RPM owned source.
+  **Greenlit as an owned-channel source.** _(Originally scoped as paid cash engine; Whop cut 2026-06.)_
 
 **Promote:** 21 validated creators → `config/niches.yaml`, grouped by the concept each feeds.
 **Verified:** `sourcing.load_creators()` → 21 creators / 5 niches, 0 bad URLs.

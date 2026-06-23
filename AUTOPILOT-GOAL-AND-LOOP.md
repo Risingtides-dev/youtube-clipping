@@ -56,7 +56,7 @@ climbing the scoreboard to $15,000/month.
 §9 OPEN QUESTIONS — RESOLVED by Eric 2026-06-22 (build to these, do NOT re-ask):
   • Posting → Repurpose.io (NOT Ssemble). Thin, swappable watch-folder/cloud-trigger adapter; Eric is trialing it.
   • Launch order → Hot Seat + Money Fights first.
-  • Whop → CUT ENTIRELY (pure owned-first; strip the Whop-payout path in capture.py + Whop refs in docs).
+  • Whop → CUT ENTIRELY (pure owned-first; Whop-payout path in capture.py + Whop refs in docs stripped 2026-06).
   • QC → MANUAL Slack review. Clips post to the Slack QC channel; nothing reaches distribution until
     Eric ✅'s it ("once I see you're doing the right thing then I'll let it run autonomously"). The
     in-code guardrail filters (build #6) run as defense-in-depth behind the human gate. Flip qc.auto

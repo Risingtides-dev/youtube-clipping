@@ -23,7 +23,7 @@ live pipeline feeds back.
 > pipeline.**
 
 **Done when ALL of these hold (the loop's exit criteria):**
-1. **A real ranked list exists** — `SOURCE-INTELLIGENCE.md` has ≥30 scored candidate source pages, each with a real virality-velocity number (from yt-dlp), a monetization path (Whop/Vyro campaign status or owned-niche RPM), and a Repurpose Opportunity Score. No placeholders.
+1. **A real ranked list exists** — `SOURCE-INTELLIGENCE.md` has ≥30 scored candidate source pages, each with a real virality-velocity number (from yt-dlp), a monetization path (owned-niche RPM / owned monetization stack), and a Repurpose Opportunity Score. No placeholders.
 2. **The angles are defined and testable** — `CHANNEL-CONCEPTS.md` has 3–5 channel concepts, each with a one-line editorial thesis, its feeder source pages, format + hook pattern, lane, and a concrete go/no-go test. **At least one is an agitation/debate concept**, and it stays inside platform policy.
 3. **It feeds the live system** — the validated winners are written into `config/niches.yaml`, so `ycp source` produces a real queue. `ycp source` runs clean against it.
 4. **Demand is proven, not asserted** — every concept the loop greenlights cites real evidence: actual velocity numbers, a confirmed live campaign, or ≥1 comparable channel already winning with that angle.
@@ -45,11 +45,11 @@ Score every candidate source page 0–100. This is the research analog of the pi
 | Dimension | Weight | What it measures | How to get it |
 |---|---|---|---|
 | **Virality Velocity** | 0.30 | Peak views/hour on recent uploads — *the* "velocity of virality" | `yt-dlp --flat-playlist --dump-json` → views ÷ hours since publish (the exact logic in `sourcing.parse_entries`) |
-| **Repurpose Earnings** | 0.25 | The $ path: a *funded* Whop/Vyro clipping campaign (cash now) **or** a high-RPM niche for an owned YPP asset | WebSearch Whop/Vyro/Content-Rewards dashboards + niche-RPM tables; confirm pool size + $/1K |
+| **Repurpose Earnings** | 0.25 | The $ path: a high-RPM niche for an owned YPP asset (owned monetization stack — TikTok Creator Rewards + YPP + affiliate + brand deals) | WebSearch niche-RPM tables; confirm realistic $/1K by niche |
 | **Clip Yield** | 0.15 | Extractable viral moments per source video — long-form, multi-topic, high-emotion = many clips/credit | Format + length check (podcast/stream/debate = high; 8-min vlog = low) |
 | **Agitation / Engagement** | 0.15 | Does it provoke opinion, debate, sides-taken → comment & share velocity (your specific ask) | Comment-to-view ratio on recent uploads + topic polarity |
 | **Headroom** | 0.10 | How *unsaturated* it is by existing clippers — more open lane = more of the spike is yours | Search for existing clip channels on that creator; fewer = higher |
-| **Compliance Fit** | 0.05 | Permissioned / clip-friendly / music-light → low strike risk | Public clip program? Whop-permissioned? Heavy music bed? |
+| **Compliance Fit** | 0.05 | Clip-friendly / music-light → low strike risk | Public clip program? Clipping encouraged? Heavy music bed? |
 
 **ROS = 100 × Σ(weight × dimension_normalized).** Rank descending = your "good list of options."
 Tune the weights as the live Double-Down Brief reveals which dimensions actually predicted winners.
@@ -93,8 +93,8 @@ EACH CYCLE, DO EXACTLY THIS:
    • NEW SOURCES — find more big, clip-friendly creators (podcasters, streamers, info/debate
      creators). Use yt-dlp flat-dumps to pull recent uploads + view counts and compute real
      view-velocity (views ÷ hours). Use WebSearch/WebFetch to discover channels you don't know.
-   • LIVE CAMPAIGNS — find creators running FUNDED Whop/Vyro/Content-Rewards clipping campaigns
-     right now (pool size, $/1K, % remaining). These are Lane-1 cash — prioritize them.
+   • OWNED MONETIZATION — score each niche's owned RPM path (TikTok Creator Rewards + YPP + affiliate)
+     right now ($/1K by niche, realistic ramp). Prioritize the high-RPM owned niches.
    • ANGLES — find content angles with high engagement velocity, especially AGITATION/DEBATE
      content (hot takes, "X vs Y," contrarian expert claims, status/generational friction) that
      reliably spark comment wars — comments & shares are a stronger early algo signal than passive
@@ -108,9 +108,9 @@ EACH CYCLE, DO EXACTLY THIS:
 
 4) ANGLE — maintain 3–5 channel concepts in CHANNEL-CONCEPTS.md. Each concept card needs: a
    one-line editorial thesis (the transformation identity), its feeder source pages (from the
-   ranked list), format + hook pattern, lane (whop cash / owned YPP), and a concrete GO/NO-GO TEST
+   ranked list), format + hook pattern, lane (owned YPP — the only lane), and a concrete GO/NO-GO TEST
    (e.g. "spin up 1 channel, post 20 clips over 14 days, greenlight if median ≥5K views OR ≥1 clip
-   >50K OR first Whop payout; else kill"). Keep at least one AGITATION/DEBATE concept — and keep
+   >50K; else kill"). Keep at least one AGITATION/DEBATE concept — and keep
    it inside policy (spicy opinion = fine; hate / harassment / dangerous misinfo = banned, never
    go there).
 
@@ -120,7 +120,7 @@ EACH CYCLE, DO EXACTLY THIS:
    evidence). If you can't prove it, mark it "unvalidated — do not promote" and say why.
 
 6) PROMOTE — write the validated winners into config/niches.yaml in the real schema (niches →
-   creators → name/handle/lane/runs_whop_campaign/notes). Then run `ycp source` (or at least the
+   creators → name/handle/lane/notes). Then run `ycp source` (or at least the
    parser) to confirm it ingests clean and produces a real queue. Only validated rows get promoted.
 
 7) LOG & COMPOUND — append a dated entry to RESEARCH-LOG.md: what you discovered/scored/validated,

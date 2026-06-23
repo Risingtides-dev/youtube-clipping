@@ -1,33 +1,37 @@
-"""Capture tests — Whop CSV import robustness (NaN payouts, unknown clips)."""
+"""Capture tests — public-view snapshotting into the DB (owned-first; Whop cut)."""
 from __future__ import annotations
-
-import pandas as pd
 
 from ycp import capture, db
 
 
-def test_import_whop_csv_skips_unknown_and_survives_nan(tmp_path):
+def test_capture_public_snapshots_posted_clips(tmp_path, monkeypatch):
     dbp = tmp_path / "t.db"
     db.init_db(dbp)
-    db.insert_clip({"clip_id": "c1", "channel": "ch", "platform": "youtube",
-                    "lane": "whop", "fmt": "x", "hook_type": "q", "length_sec": 30}, dbp)
-    csv = tmp_path / "whop.csv"
-    pd.DataFrame([
-        {"clip_id": "c1", "payout": 12.5, "views": 5000},
-        {"clip_id": "c1", "payout": None, "views": 1000},      # NaN payout -> 0.0, no crash
-        {"clip_id": "ghost", "payout": 9.0, "views": 100},     # unknown clip -> skipped (no FK error)
-    ]).to_csv(csv, index=False)
-
-    n = capture.import_whop_csv(csv, dbp)
-    assert n == 2  # both c1 rows imported; "ghost" skipped
-
-
-def test_import_whop_csv_url_keyed(tmp_path):
-    dbp = tmp_path / "t.db"
-    db.init_db(dbp)
-    db.insert_clip({"clip_id": "c1", "channel": "ch", "platform": "youtube", "lane": "whop",
+    # one posted clip with a URL (captured), one without a URL (ignored)
+    db.insert_clip({"clip_id": "c1", "channel": "ch", "platform": "youtube", "lane": "owned",
                     "fmt": "x", "hook_type": "q", "length_sec": 30,
-                    "post_url": "https://x.com/c1"}, dbp)
-    csv = tmp_path / "whop.csv"
-    pd.DataFrame([{"url": "https://x.com/c1", "earnings": 8.0}]).to_csv(csv, index=False)
-    assert capture.import_whop_csv(csv, dbp) == 1
+                    "status": "posted", "post_url": "https://x.com/c1"}, dbp)
+    db.insert_clip({"clip_id": "c2", "channel": "ch", "platform": "youtube", "lane": "owned",
+                    "fmt": "x", "hook_type": "q", "length_sec": 30,
+                    "status": "posted"}, dbp)
+
+    monkeypatch.setattr(capture, "_ytdlp_views", lambda url: 4321)
+    n = capture.capture_public(dbp)
+    assert n == 1  # only the clip with a post_url is snapshotted
+
+    df = db.clips_with_latest_metrics(dbp)
+    by_id = {r["clip_id"]: r for _, r in df.iterrows()}
+    assert by_id["c1"]["views"] == 4321
+    assert by_id["c2"]["views"] == 0  # no URL -> never captured
+
+
+def test_capture_public_skips_when_no_views(tmp_path, monkeypatch):
+    dbp = tmp_path / "t.db"
+    db.init_db(dbp)
+    db.insert_clip({"clip_id": "c1", "channel": "ch", "platform": "youtube", "lane": "owned",
+                    "fmt": "x", "hook_type": "q", "length_sec": 30,
+                    "status": "posted", "post_url": "https://x.com/c1"}, dbp)
+
+    monkeypatch.setattr(capture, "_ytdlp_views", lambda url: None)  # fetch failed
+    n = capture.capture_public(dbp)
+    assert n == 0  # no metric written when views can't be fetched

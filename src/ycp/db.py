@@ -33,7 +33,7 @@ CREATE TABLE IF NOT EXISTS source_videos (
     views         INTEGER DEFAULT 0,
     published_at  TEXT,
     view_velocity REAL DEFAULT 0,     -- views per hour since publish
-    lane          TEXT,               -- whop | owned
+    lane          TEXT,               -- owned (the only lane)
     status        TEXT DEFAULT 'queued',  -- queued | clipped | skipped
     sourced_at    TEXT NOT NULL
 );
@@ -44,7 +44,7 @@ CREATE TABLE IF NOT EXISTS clips (
     source_creator  TEXT,
     channel         TEXT NOT NULL,    -- our posting channel
     platform        TEXT NOT NULL,    -- youtube | tiktok | instagram
-    lane            TEXT NOT NULL,    -- whop | owned
+    lane            TEXT NOT NULL,    -- owned (the only lane)
     fmt             TEXT,             -- debate-moment | story-payoff | list | reaction ...
     hook_type       TEXT,             -- question | bold-claim | cliffhanger | pattern-interrupt
     length_sec      INTEGER,
@@ -63,8 +63,7 @@ CREATE TABLE IF NOT EXISTS metrics (
     retention_pct REAL,
     swipe_away_pct REAL,
     rpm          REAL,               -- $ per 1000 views (owned/YPP)
-    ad_revenue   REAL DEFAULT 0,
-    whop_payout  REAL DEFAULT 0
+    ad_revenue   REAL DEFAULT 0
 );
 
 CREATE TABLE IF NOT EXISTS qc_log (
@@ -98,6 +97,7 @@ def connect(db_path: Path | None = None) -> Iterator[sqlite3.Connection]:
     conn = sqlite3.connect(db_path or DB_PATH)
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA foreign_keys = ON")
+    conn.executescript(SCHEMA)  # idempotent CREATE IF NOT EXISTS - every connection has the schema
     try:
         yield conn
         conn.commit()
@@ -178,12 +178,12 @@ def insert_metric(row: dict[str, Any], db_path: Path | None = None) -> None:
         conn.execute(
             """INSERT INTO metrics
                  (clip_id, captured_at, views, retention_pct, swipe_away_pct,
-                  rpm, ad_revenue, whop_payout)
+                  rpm, ad_revenue)
                VALUES (:clip_id, :captured_at, :views, :retention_pct,
-                       :swipe_away_pct, :rpm, :ad_revenue, :whop_payout)""",
+                       :swipe_away_pct, :rpm, :ad_revenue)""",
             {
                 "captured_at": now(), "retention_pct": None, "swipe_away_pct": None,
-                "rpm": None, "ad_revenue": 0, "whop_payout": 0, "views": 0, **row,
+                "rpm": None, "ad_revenue": 0, "views": 0, **row,
             },
         )
 
@@ -246,12 +246,12 @@ def clips_with_latest_metrics(db_path: Path | None = None) -> pd.DataFrame:
     if clips.empty:
         return clips
     if metrics.empty:
-        for col in ("views", "retention_pct", "rpm", "ad_revenue", "whop_payout"):
+        for col in ("views", "retention_pct", "rpm", "ad_revenue"):
             clips[col] = 0.0
         return clips
     metrics = metrics.sort_values("captured_at").groupby("clip_id").tail(1)
     merged = clips.merge(
-        metrics[["clip_id", "views", "retention_pct", "rpm", "ad_revenue", "whop_payout"]],
+        metrics[["clip_id", "views", "retention_pct", "rpm", "ad_revenue"]],
         on="clip_id", how="left",
     )
-    return merged.fillna({"views": 0, "ad_revenue": 0, "whop_payout": 0})
+    return merged.fillna({"views": 0, "ad_revenue": 0})

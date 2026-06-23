@@ -29,7 +29,7 @@ from . import scoreboard as scoreboard_mod
 from . import sourcing as sourcing_mod
 from .config import ROOT, settings
 
-# Whop is CUT (HANDOFF §9) — owned channels are the only lane the factory clips for.
+# Owned channels are the only lane the factory clips for (Whop cut 2026-06; pure owned-first).
 DEFAULT_LANES: tuple[str, ...] = ("owned",)
 
 

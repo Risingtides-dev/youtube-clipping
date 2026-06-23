@@ -21,7 +21,7 @@ scoring:
   weights:
     views_7d: 0.50        # log-normalized 7-day views
     retention: 0.30       # average view percentage / retention
-    revenue_per_1k: 0.20  # blended $ per 1k (ad RPM + whop payout)
+    revenue_per_1k: 0.20  # $ per 1k (ad RPM, owned channels)
   # Length buckets (seconds) for rollup analysis.
   length_buckets: [0, 15, 25, 35, 45, 60]
   # A combo must have at least this many clips before we trust its average.
@@ -64,4 +64,4 @@ distribution:
   outbox: data/outbox      # the folder Repurpose.io watches (sync to Drive/Dropbox)
 
 platforms: [youtube, tiktok, instagram]
-lanes: [whop, owned]   # whop = cash engine (permissioned), owned = YPP asset
+lanes: [owned]   # owned = YPP asset (Whop cut 2026-06; pure owned-first)

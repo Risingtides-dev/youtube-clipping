@@ -16,12 +16,12 @@ until any team member can run the play from the playbook alone and clear $10K/mo
 
 **Done when ALL of these hold (the loop's exit criteria):**
 1. **Runnable cold** — a brand-new operator runs sourcing → repurpose → QC → distribute → measure end-to-end from the playbook with zero outside questions.
-2. **Every failure mode guarded** — account flag, music Content-ID, missed Whop submission window, bounty-pool exhaustion, Ssemble credit cap, dead clip: each has a documented guardrail or recovery step.
+2. **Every failure mode guarded** — account flag, music Content-ID, Ssemble credit cap, dead clip: each has a documented guardrail or recovery step.
 3. **The loop actually compounds** — the weekly Double-Down Brief demonstrably steers sourcing, and output + hit-rate rise week over week.
 4. **Economics pencil out** — a worked scorecard shows a credible path to $10K/operator/month (volume × hit-rate × rate), with at least one real example.
 5. **System is green** — all `ycp` commands run clean and tests pass.
 
-**Hard constraints (never optimize past these):** transformation on every owned-channel clip · permissioned/Whop sources first · residential IPs + warmed accounts · no copyrighted music · **channel health > raw output**.
+**Hard constraints (never optimize past these):** transformation on every owned-channel clip · clip-friendly / permissioned sources preferred · residential IPs + warmed accounts · no copyrighted music · **channel health > raw output**.
 
 ---
 
@@ -54,9 +54,9 @@ EACH CYCLE, DO EXACTLY THIS:
                    Where's the choke: sourcing, editing, QC, Ssemble credit cap, posting?
    • HIT RATE    — are operators making the creator×format×hook combos the latest
                    Double-Down Brief says win? Is the brief actually steering sourcing?
-   • MONETIZATION— is every clip matched to a FUNDED Whop/Vyro campaign, submitted inside
-                   the window, verification code set, AND double-dipped onto an owned
-                   channel? (These are the top reasons clippers never get paid.)
+   • MONETIZATION— is every owned channel wired to the monetization stack (TikTok Creator
+                   Rewards + YPP + affiliate + brand deals), and is each clip transformed
+                   and posted to a healthy owned channel? (These gate whether you get paid.)
    • ACCOUNT HEALTH — residential IPs, warmed accounts, no copyrighted-music Content-ID,
                    transformation on every owned clip. A ban zeroes an operator — protect
                    this ABOVE output.
@@ -93,8 +93,8 @@ EXIT CRITERIA (all must hold):
   ✓ A worked scorecard shows a credible path to $10K/operator/month with ≥1 real example.
   ✓ All `ycp` commands run clean; tests pass.
 
-RULES: compliance guardrails are non-negotiable (transformation on owned clips, permissioned/
-Whop sources first, residential IPs + warming, no copyrighted music, channel health > output).
+RULES: compliance guardrails are non-negotiable (transformation on owned clips, clip-friendly
+sources preferred, residential IPs + warming, no copyrighted music, channel health > output).
 Be honest in the log — if a step failed or is unverified, say so plainly. One finished,
 verified improvement per cycle beats five half-done ones. Do not stop early for any reason
 other than the exit criteria being met.

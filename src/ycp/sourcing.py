@@ -157,7 +157,7 @@ def load_creators(niches_path: Path | None = None) -> list[dict[str, Any]]:
                 "name": c["name"],
                 "url": c["handle"] if c["handle"].startswith("http")
                        else f"https://www.youtube.com/{c['handle']}/videos",
-                "lane": c.get("lane", niche.get("lane_default", "whop")),
+                "lane": c.get("lane", niche.get("lane_default", "owned")),
                 "niche": niche["name"],
             })
     return creators

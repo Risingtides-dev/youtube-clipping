@@ -11,10 +11,11 @@ from pathlib import Path
 from . import db
 
 # (creator, format, hook, lane, quality 0..1) — quality drives views/retention/$$
+# Lane is always 'owned' now (Whop cut 2026-06; pure owned-first).
 COMBOS = [
-    ("Flagrant",      "debate-moment", "question",         "whop",  0.95),  # clear winner
+    ("Flagrant",      "debate-moment", "question",         "owned", 0.95),  # clear winner
     ("ModernWisdom",  "story-payoff",  "cliffhanger",      "owned", 0.80),
-    ("Flagrant",      "list",          "bold-claim",       "whop",  0.60),
+    ("Flagrant",      "list",          "bold-claim",       "owned", 0.60),
     ("ModernWisdom",  "reaction",      "pattern-interrupt","owned", 0.45),
     ("RandomVlogger", "reaction",      "pattern-interrupt","owned", 0.12),  # clear loser
 ]
@@ -36,8 +37,7 @@ def seed(db_path: Path | None = None) -> int:
             quality = max(0.02, min(1.0, q + jitter))
             views = int(2_000 + quality**2 * 480_000)      # 2K .. ~480K
             retention = round(20 + quality * 65, 1)        # 20% .. 85%
-            whop = round(views / 1000 * 2.0, 2) if lane == "whop" else 0.0
-            ad_rev = round(views / 1000 * 0.04, 2) if lane == "owned" else 0.0
+            ad_rev = round(views / 1000 * 0.04, 2)
 
             db.insert_clip({
                 "clip_id": clip_id,
@@ -57,7 +57,6 @@ def seed(db_path: Path | None = None) -> int:
                 "retention_pct": retention,
                 "rpm": round(ad_rev / (views / 1000), 3) if ad_rev else None,
                 "ad_revenue": ad_rev,
-                "whop_payout": whop,
             }, db_path)
             n += 1
     return n
