@@ -3,8 +3,8 @@
   ycp init                      create the database
   ycp demo                      seed demo data + print a Double-Down Brief (no creds)
   ycp source                    Stage 1: build today's ranked source queue (yt-dlp)
-  ycp qc-post                   Stage 3: post pending clips to Slack for approval
-  ycp qc-listen                 Stage 3: run the Slack reaction listener (blocks)
+  ycp qc-post                   Stage 3: dispatch pending clips for review (slack|telegram|local)
+  ycp qc-listen                 Stage 3: run the approval listener for the active channel
   ycp capture                   Stage 5: snapshot public views
   ycp brief                     Stage 5: generate the weekly brief (+ --post-slack)
   ycp clip <url>                Stage 2: hybrid yt-dlp+whisper+ffmpeg vertical clips
@@ -57,15 +57,26 @@ def _cmd_source(args: argparse.Namespace) -> int:
 
 
 def _cmd_qc_post(_: argparse.Namespace) -> int:
-    from . import slack_qc
-    count = slack_qc.post_pending()
-    print(f"✓ posted {count} clips to Slack QC")
+    from . import qc
+    r = qc.dispatch_pending()
+    if "dispatched" in r:
+        print(f"✓ dispatched {r['dispatched']} clips for review via {r['channel']}")
+    else:
+        print(f"✓ auto-QC: {r.get('approved', 0)} approved, "
+              f"{r.get('rejected', 0)} rejected (guardrails)")
     return 0
 
 
 def _cmd_qc_listen(_: argparse.Namespace) -> int:
-    from . import slack_qc
-    slack_qc.run_listener()
+    from . import qc
+    qc.collect()
+    return 0
+
+
+def _cmd_qc_decide(args: argparse.Namespace) -> int:
+    from . import qc
+    qc.decide(args.clip_id, args.decision, reviewer="cli")
+    print(f"✓ {args.decision} {args.clip_id}")
     return 0
 
 
@@ -145,7 +156,13 @@ def build_parser() -> argparse.ArgumentParser:
     sub.add_parser("demo", help="seed demo data + print a brief (no creds)").set_defaults(fn=_cmd_demo)
     sub.add_parser("source", help="build today's ranked source queue").set_defaults(fn=_cmd_source)
     sub.add_parser("qc-post", help="post pending clips to Slack").set_defaults(fn=_cmd_qc_post)
-    sub.add_parser("qc-listen", help="run Slack approval listener (blocks)").set_defaults(fn=_cmd_qc_listen)
+    sub.add_parser("qc-listen", help="run the approval listener for the active channel (blocks)").set_defaults(fn=_cmd_qc_listen)
+    qa = sub.add_parser("qc-approve", help="approve a clip by id (local/manual review)")
+    qa.add_argument("clip_id")
+    qa.set_defaults(fn=_cmd_qc_decide, decision="approve")
+    qr = sub.add_parser("qc-reject", help="reject a clip by id")
+    qr.add_argument("clip_id")
+    qr.set_defaults(fn=_cmd_qc_decide, decision="reject")
     cap = sub.add_parser("capture", help="snapshot public views")
     cap.set_defaults(fn=_cmd_capture)
     br = sub.add_parser("brief", help="generate the weekly Double-Down Brief")

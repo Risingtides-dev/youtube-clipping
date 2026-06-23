@@ -50,11 +50,12 @@ hooks:
   model: deepseek-chat
 
 qc:
-  # MANUAL review (Eric's call, 2026-06-22): every clip is posted to the Slack QC
-  # channel and nothing advances to distribution until Eric ✅ it. He oversees the
-  # content to make sure it's right. Flip to true ONLY once the output has earned
-  # trust over time. The in-code guardrail filters still run as defense-in-depth.
+  # auto: true  -> no human; the in-code guardrails decide (fully autonomous).
+  # auto: false -> a human approves via the channel below. Flip to true once output earns trust.
   auto: false
+  # The review channel is NOT hardcoded. `auto` picks by configured creds
+  # (slack > telegram > local). Or force one: slack | telegram | local.
+  channel: auto
 
 distribution:
   # PREFERRED: Postiz (public API) — we hold POSTIZ_API_TOKEN and connect the YouTube

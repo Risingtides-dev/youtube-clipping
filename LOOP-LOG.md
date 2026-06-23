@@ -123,3 +123,17 @@ safe center crop. opencv-python-headless dep + tests/test_reframe.py.
 caught a real failure (a billionaire photo-grid fooled naive "largest face"), which the gate fixes.
 **Result:** 73 tests green, ruff clean. Conservative-by-design: never worse than center-crop.
 **Next bottleneck:** batch volume run (A); active-speaker detection (vs face detection) for multi-face shots.
+
+---
+
+## Cycle — 2026-06-23 · Channel-agnostic QC (don't hardcode the approval channel)
+**What:** New `src/ycp/qc.py` — the review channel is no longer welded to Slack. `qc.auto: true`
+skips humans (guardrails decide); else `qc.channel` (auto|slack|telegram|local) picks where the
+human ✅/❌ happens. `auto` auto-detects by configured creds (slack > telegram > local). Backends:
+Slack (delegates to slack_qc), Telegram (sendVideo + inline ✅/❌ buttons, getUpdates poll), Local
+(writes a review manifest; approve via `ycp qc-approve <id>`). autopilot + cli now call the
+generic dispatch/collect; added `ycp qc-approve|qc-reject <id>`. TELEGRAM_BOT_TOKEN/_QC_CHAT in env.
+**Why:** Slack rendering was flaky on Eric's side, and the approval gate shouldn't depend on one
+service. Mirrors the existing distribution provider pattern.
+**Result:** 82 tests green, ruff clean.
+**Next bottleneck:** wire Telegram creds to route clips to Eric's phone; the qc.auto autonomy flip.

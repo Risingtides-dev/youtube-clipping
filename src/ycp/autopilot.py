@@ -150,16 +150,13 @@ def run(
     # advances until he ✅'s them. `qc.auto: true` (later, once trust is earned) flips
     # to auto-approve via the in-code guardrail filters.
     def _qc() -> str:
-        pending = db.pending_qc_clips(db_path)
-        if not pending:
+        if not db.pending_qc_clips(db_path):
             return "no clips pending QC"
-        if settings().get("qc", {}).get("auto", True):
-            from . import distribute
-            c = distribute.auto_qc(db_path)
-            return f"auto-QC: {c['approved']} approved, {c['rejected']} rejected (guardrail-gated)"
-        from . import slack_qc
-        n = slack_qc.post_pending(db_path=db_path)
-        return f"{n} posted to Slack QC (manual mode)"
+        from . import qc as qc_mod
+        r = qc_mod.dispatch_pending(db_path)
+        if "dispatched" in r:
+            return f"{r['dispatched']} dispatched for review via {r['channel']}"
+        return f"auto-QC: {r.get('approved', 0)} approved, {r.get('rejected', 0)} rejected (guardrails)"
 
     _stage("qc", _qc, results, log)
 
