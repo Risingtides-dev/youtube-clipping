@@ -9,7 +9,7 @@ import pytest
 
 from ycp import clip
 from ycp.clip import Candidate, plan_clips, score_candidate
-from ycp.srt import Segment, to_srt
+from ycp.srt import Segment
 
 
 def test_score_rewards_hooks_and_sweet_spot_duration():
@@ -40,10 +40,11 @@ def test_plan_clips_respects_max_len():
     assert all(c.duration <= 40 for c in cands)
 
 
-@pytest.mark.skipif(not shutil.which("ffmpeg") or not shutil.which("ffprobe"),
-                    reason="ffmpeg/ffprobe not installed")
+@pytest.mark.skipif(
+    not shutil.which("ffmpeg") or not shutil.which("ffprobe"),
+    reason="ffmpeg/ffprobe not installed")
 def test_cut_vertical_produces_1080x1920(tmp_path: Path):
-    # synthetic 6s landscape test video
+    # synthetic 6s landscape test video; cut_vertical is now pure scale/crop (no libass)
     src = tmp_path / "source.mp4"
     subprocess.run(
         ["ffmpeg", "-y", "-f", "lavfi", "-i", "testsrc=duration=6:size=640x480:rate=15",
@@ -52,9 +53,8 @@ def test_cut_vertical_produces_1080x1920(tmp_path: Path):
         capture_output=True, check=True,
     )
     cand = Candidate(0.0, 4.0, "test caption", 2.0)
-    srt = to_srt([Segment(0.0, 4.0, "test caption")])
     out = tmp_path / "out.mp4"
-    clip.cut_vertical(src, cand, srt, out, tmp_path)
+    clip.cut_vertical(src, cand, out, tmp_path)
     assert out.exists()
     dims = subprocess.run(
         ["ffprobe", "-v", "error", "-select_streams", "v:0",

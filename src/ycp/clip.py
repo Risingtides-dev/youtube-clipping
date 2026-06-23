@@ -1,16 +1,16 @@
 """Hybrid clip pipeline — the free, uncapped volume engine.
 
-Breaks the Ssemble credit ceiling (~7/day): download with yt-dlp, transcribe with
-Whisper, slice into candidate moments (ranked by a cheap heuristic), and cut
-vertical captioned 9:16 clips with ffmpeg. Output lands as `pending_qc` clips in
-the DB + mp4s in data/clips/, ready for the Slack QC board.
+Download with yt-dlp, transcribe with Whisper, slice into candidate moments (ranked by
+a cheap heuristic), cut a clean vertical 9:16 clip with ffmpeg, then composite the
+hook title + opus-style word-by-word captions on top (see `captions.py`). Output lands
+as `pending_qc` clips in the DB + mp4s in data/clips/, ready for the Slack QC board.
 
-Reserve Ssemble credits for AI moment-detection on heroes + auto-posting; use this
-for raw volume. v1 reframe is center-crop (no face-tracking yet) and ranking is a
-transcript heuristic (no AI scoring yet) — both noted as future loop cycles.
+v1 reframe is center-crop (no face-tracking yet) and ranking is a transcript heuristic
+(no AI scoring yet) — both noted as future loop cycles. Captions are rendered with
+Pillow + the ffmpeg `overlay` filter because this ffmpeg has no libass/freetype.
 
 Pure logic (`plan_clips`, `score_candidate`) is unit-tested; the subprocess steps
-(download/transcribe/cut) are thin wrappers verified via a synthetic ffmpeg smoke.
+(download/transcribe/cut/overlay) are thin wrappers verified on a real clip.
 """
 from __future__ import annotations
 
@@ -21,9 +21,9 @@ import tempfile
 from dataclasses import dataclass
 from pathlib import Path
 
-from . import db, enhance, hooks
+from . import captions, db, enhance, hooks
 from .config import ROOT
-from .srt import Segment, slice_and_shift, to_srt
+from .srt import Segment, slice_and_shift
 from .transcribe import transcribe
 
 CLIPS_DIR = ROOT / "data" / "clips"
@@ -85,7 +85,7 @@ def plan_clips(segments: list[Segment], min_len: float = 15, max_len: float = 60
     return ranked[:top] if top else ranked
 
 
-# ── subprocess steps (thin wrappers) ─────────────────────────────────────────
+# -- subprocess steps (thin wrappers) -----------------------------------------
 
 def download(url: str, workdir: Path) -> Path:
     out = workdir / "source.mp4"
@@ -99,14 +99,13 @@ def download(url: str, workdir: Path) -> Path:
 # transcribe() now lives in transcribe.py (whisper.cpp default, openai-whisper fallback)
 
 
-def cut_vertical(video: Path, cand: Candidate, srt_text: str, out_path: Path,
-                 workdir: Path) -> Path:
-    """ffmpeg: trim -> scale/center-crop to 1080x1920 -> burn captions."""
-    sub = workdir / "cap.srt"
-    sub.write_text(srt_text)
-    vf = ("scale=1080:1920:force_original_aspect_ratio=increase,"
-          "crop=1080:1920,"
-          "subtitles=cap.srt:force_style='Alignment=2,Fontsize=18,Outline=2,MarginV=80'")
+def cut_vertical(video: Path, cand: Candidate, out_path: Path, workdir: Path) -> Path:
+    """ffmpeg: trim -> scale/center-crop to a clean 1080x1920 vertical (no text burn).
+
+    Captions + hook title are composited afterward by `captions.burn_captions`, because
+    this ffmpeg has no libass/freetype text filters.
+    """
+    vf = "scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920"
     tmp_out = workdir / "out.mp4"
     cmd = ["ffmpeg", "-y", "-i", str(video), "-ss", str(cand.start),
            "-t", str(cand.duration), "-vf", vf, "-c:v", "libx264",
@@ -119,16 +118,17 @@ def cut_vertical(video: Path, cand: Candidate, srt_text: str, out_path: Path,
     return out_path
 
 
-def run(url: str, max_clips: int = 6, lane: str = "whop",
+def run(url: str, max_clips: int = 6, lane: str = "owned",
         source_creator: str = "unknown", channel: str = "clips",
-        hook_cta: bool = False, title: str | None = None, cta: str = "Subscribe for more",
+        hook_cta: bool = True, title: str | None = None, cta: str = "Subscribe for more",
         gameplay: Path | None = None, source_video_id: str | None = None,
         angle: str = "", db_path: Path | None = None) -> list[dict]:
-    """Full pipeline: url -> ranked vertical captioned clips registered for QC.
+    """Full pipeline: url -> ranked vertical clips with hook title + captions, registered for QC.
 
-    Optional owned enhancements (Ssemble parity): `hook_cta` burns a top title
-    (auto-picked from the transcript unless `title` given) + a CTA banner; `gameplay`
-    stacks each clip over a looping gameplay file (split-screen retention).
+    Every clip gets the DeepSeek hook title (the highest-leverage lever) and opus-style
+    captions burned on (`captions.burn_captions`). `title` overrides the per-clip hook for
+    all clips; `gameplay` stacks each clip over a looping file (split-screen retention).
+    Caption failure is non-fatal — the plain vertical clip still ships.
     """
     db.init_db(db_path)
     created: list[dict] = []
@@ -140,15 +140,18 @@ def run(url: str, max_clips: int = 6, lane: str = "whop",
         candidates = plan_clips(segments, top=max_clips)
         for i, cand in enumerate(candidates):
             clip_id = f"{vid_hash}-{i:02d}"
-            sub = to_srt(slice_and_shift(segments, cand.start, cand.end))
+            chunks = captions.build_chunks(slice_and_shift(segments, cand.start, cand.end))
             staged = workdir / f"{clip_id}.mp4"
             try:
-                cut_vertical(video, cand, sub, staged, workdir)
+                cut_vertical(video, cand, staged, workdir)
                 cur = staged
-                if hook_cta:
-                    cur = enhance.apply_overlay(cur, workdir / f"{clip_id}_ov.mp4",
-                                                title=title or hooks.best_hook(cand.text, angle=angle),
-                                                cta=cta)
+                clip_title = title or hooks.best_hook(cand.text, angle=angle)
+                try:
+                    cur = captions.burn_captions(
+                        staged, chunks, workdir / f"{clip_id}_cap.mp4", workdir,
+                        title=clip_title)
+                except RuntimeError as exc:
+                    print(f"  · captions failed ({exc}); shipping plain clip")
                 if gameplay:
                     cur = enhance.stack_gameplay(cur, gameplay, workdir / f"{clip_id}_gp.mp4")
             except (RuntimeError, FileNotFoundError) as exc:

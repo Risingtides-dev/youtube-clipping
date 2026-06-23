@@ -9,6 +9,7 @@ dependencies = [
     "requests>=2.31",
     "python-dotenv>=1.0",
     "tabulate>=0.9",
+    "pillow>=10",
 ]
 
 [project.optional-dependencies]
