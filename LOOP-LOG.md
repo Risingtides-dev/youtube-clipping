@@ -108,3 +108,18 @@ Picking the right moment is the biggest virality lever; captions/reframe can't s
 **Result:** 69 tests green, ruff clean. Live A/B on a real Hormozi source posted to #youtube-clipping.
 **Next bottleneck:** face-pan reframe (still center-crop); the Slack approve/reject loop needs the
 bot app's reactions:read/write scopes + a reaction_added event subscription.
+
+---
+
+## Cycle — 2026-06-23 · Face-pan reframe (follow the speaker, not the frame center)
+**What:** New `src/ycp/reframe.py` — OpenCV (Haar) face detection across the clip builds a smoothed
+crop-x timeline; ffmpeg crops a 1080-wide 9:16 window centered on the speaker, hard-cutting to
+follow when they move. `clip.cut_vertical` now trims then reframes (mode face|center in settings).
+A confidence gate skips frames with >2 faces (photo grids / b-roll) and sub-9%-width faces, and only
+pans when a speaker-sized face is present in >=45% of sampled frames — otherwise it falls back to a
+safe center crop. opencv-python-headless dep + tests/test_reframe.py.
+**Why:** Center-crop blindly took the middle slice — cutting off off-center speakers and keeping junk
+(the Hormozi sidebar). Following the face keeps the subject framed = better retention. The live A/B
+caught a real failure (a billionaire photo-grid fooled naive "largest face"), which the gate fixes.
+**Result:** 73 tests green, ruff clean. Conservative-by-design: never worse than center-crop.
+**Next bottleneck:** batch volume run (A); active-speaker detection (vs face detection) for multi-face shots.

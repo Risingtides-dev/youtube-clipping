@@ -73,3 +73,9 @@ lanes: [owned]   # owned = YPP asset (Whop cut 2026-06; pure owned-first)
 vision:
   enabled: true
   model: gemini-3.5-flash
+
+# --- Reframe (vertical crop) -------------------------------------------------
+# face = OpenCV face-pan crop that follows the speaker (best for talking heads);
+# center = static center crop. Falls back to center whenever no face is found.
+reframe:
+  mode: face

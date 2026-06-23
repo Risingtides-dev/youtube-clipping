@@ -79,7 +79,7 @@ Non-negotiable constraints:
 3. **End-to-end real-clip gate.** Run a real YouTube source through `ycp clip`
    (download -> whisper -> hook -> caption) and eyeball; wire as the standing production gate.
    (Editing layer + DeepSeek already proven on a synthetic render + live API this session.)
-4. **Face-pan reframe.** Port `clipify`'s speaker-tracking (`analyze.py` + `build_pan.py`)
+4. ✅ **DONE — Face-pan reframe.** Port `clipify`'s speaker-tracking (`analyze.py` + `build_pan.py`)
    to replace center-crop. Next big retention win.
 5. **`content_lab.py` adapter (OPTIONAL).** Color-correct + Pruna 9:16 AI b-roll behind
    flags — owned RT infra (https://risingtides-content-lab-production.up.railway.app). Not

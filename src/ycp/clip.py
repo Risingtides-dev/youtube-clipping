@@ -21,8 +21,8 @@ import tempfile
 from dataclasses import dataclass
 from pathlib import Path
 
-from . import captions, db, enhance, hooks, vision
-from .config import ROOT
+from . import captions, db, enhance, hooks, reframe, vision
+from .config import ROOT, settings
 from .srt import Segment, slice_and_shift
 from .transcribe import transcribe
 
@@ -106,22 +106,17 @@ def download(url: str, workdir: Path) -> Path:
 
 
 def cut_vertical(video: Path, cand: Candidate, out_path: Path, workdir: Path) -> Path:
-    """ffmpeg: trim -> scale/center-crop to a clean 1080x1920 vertical (no text burn).
-
-    Captions + hook title are composited afterward by `captions.burn_captions`, because
-    this ffmpeg has no libass/freetype text filters.
-    """
-    vf = "scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920"
-    tmp_out = workdir / "out.mp4"
-    cmd = ["ffmpeg", "-y", "-i", str(video), "-ss", str(cand.start),
-           "-t", str(cand.duration), "-vf", vf, "-c:v", "libx264",
-           "-c:a", "aac", "-preset", "veryfast", str(tmp_out)]
+    """Trim the candidate window, then reframe to a 9:16 vertical that follows the speaker
+    (OpenCV face-pan, falling back to a center crop). Captions are composited afterward by
+    `captions.burn_captions` (this ffmpeg has no libass/freetype text filters)."""
+    trimmed = workdir / "trim.mp4"
+    cmd = ["ffmpeg", "-y", "-i", str(video), "-ss", str(cand.start), "-t", str(cand.duration),
+           "-c:v", "libx264", "-c:a", "aac", "-preset", "veryfast", str(trimmed)]
     proc = subprocess.run(cmd, capture_output=True, text=True, timeout=600, cwd=workdir)
-    if proc.returncode != 0 or not tmp_out.exists():
-        raise RuntimeError(f"ffmpeg cut failed: {proc.stderr.strip()[-400:]}")
-    out_path.parent.mkdir(parents=True, exist_ok=True)
-    shutil.move(str(tmp_out), str(out_path))
-    return out_path
+    if proc.returncode != 0 or not trimmed.exists():
+        raise RuntimeError(f"ffmpeg trim failed: {proc.stderr.strip()[-400:]}")
+    mode = settings().get("reframe", {}).get("mode", "face")
+    return reframe.reframe(trimmed, out_path, workdir, mode=mode)
 
 
 def run(url: str, max_clips: int = 6, lane: str = "owned",
