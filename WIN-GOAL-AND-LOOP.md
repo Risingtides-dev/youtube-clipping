@@ -26,14 +26,15 @@ Rewards + affiliate + later brand deals). The channels are the asset.
   filter (this ffmpeg has no libass/freetype). **Self-contained, no network on the critical
   path.** Proven on a real render. The caption-less era is over.
 - **Gemini 3.5 vision moment-selection (this session):** Gemini watches the source video and picks the most clippable windows — replacing the blind transcript heuristic. On by default (`gemini-3.5-flash`), heuristic fallback if the key's missing. Live-verified A/B.
-- **Not live yet:** zero channels. Distribution (Repurpose.io) + channel accounts need
-  Eric's **one-time connect**. Game state: **Day 0, Level 1, $0.**
+- **Not live yet:** zero channels. Distribution **adapter built** (Postiz preferred — see
+  DISTRIBUTION.md); needs Eric's **one-time connect** + `POSTIZ_API_TOKEN`. Game state:
+  **Day 0, Level 1, $0.**
 
 ## 3. The winning workflow
 ```
 source -> clip(trim + reframe) -> transcribe(whisper.cpp) -> hooks(DeepSeek)
       -> captions(opus PNG overlay, LOCAL) -> [opt: color-correct . Pruna 9:16 b-roll]
-      -> QC(Slack: manual->auto) -> distribute(Repurpose outbox) -> capture -> brief -> scoreboard
+      -> QC(Slack: manual->auto) -> distribute(Postiz API / Repurpose outbox) -> capture -> brief -> scoreboard
 ```
 **`ycp` keeps the brain AND the render local** — ranked clip selection, DeepSeek hooks,
 compliance guardrails, and now caption/title burn-in (Pillow + ffmpeg `overlay`). The owned
@@ -68,7 +69,7 @@ Each cycle:
        leave them unstaged — don't commit, stash, or `git checkout` them.
      - One conventional commit scoped to your change, then `git push`.
 6. Stop. Surface to Eric anything that needs his accounts or a decision (channel connect,
-   Repurpose auth, flipping QC manual->auto).
+   Postiz connect + `POSTIZ_API_TOKEN`, flipping QC manual->auto).
 
 Non-negotiable constraints:
 - Transform every owned-channel clip (your cut/hook/captions) — raw reuploads get the channel

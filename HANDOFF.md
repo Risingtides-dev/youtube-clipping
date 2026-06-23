@@ -49,8 +49,10 @@ The research answers **what to clip and which angles to run**. You take it from 
 - The full `ycp` pipeline skeleton: `source · clip · qc · capture · brief · demo · scoreboard · autopilot`.
 
 ### ❌ Not built yet (your work)
-- **Distribution** — posting to YouTube/TikTok/IG is NOT wired. Target = **Repurpose.io** (§9
-  resolved; Eric is trialing it). **A human must connect accounts once** in its dashboard.
+- **Distribution** — adapter is **built** (Postiz preferred + Repurpose.io alternative, behind
+  `distribution.provider`; OFF until configured — see **DISTRIBUTION.md**). Not posting live yet:
+  needs the **one-time human connect** (set `POSTIZ_API_TOKEN`, connect the YouTube channels in
+  Postiz, map them, flip `distribution.enabled`).
 - **Live channels** — zero channels exist yet. Game state = **Day 0, Level 1 "Boot Up", $0.**
 
 ---
@@ -158,13 +160,13 @@ needs Eric's accounts connected once.
    creator. `ycp source` now writes a non-empty `data/source-queue.md`; `pytest` + `ruff` green.
 2. ~~**The orchestrator**~~ ✅ **DONE.** `ycp autopilot` (and `scripts/autopilot.sh` + the
    launchd plist) chains `source → clip → qc → capture → brief → scoreboard` end-to-end.
-3. **Wire distribution → Repurpose.io** (§9 resolved). Build a thin, swappable adapter to its
-   watch-folder / cloud-trigger model: the `distribute` stage drops each approved clip + metadata
-   into the watched source and Repurpose auto-posts to the connected channels. **Eric connects
-   accounts once** in the Repurpose dashboard; after that, posting is automated. Keep it loosely
-   coupled (he's trialing the tool, not married to it). **Gate:** QC is manual (§9) — only clips
-   Eric ✅'d in Slack reach distribution. The in-code guardrail filters (build #6) run as
-   defense-in-depth behind that human gate.
+3. ~~**Wire distribution**~~ ✅ **adapter built** — **Postiz** (preferred; we hold the API token)
+   + **Repurpose.io** (alternative), selected by `distribution.provider`, both behind the same
+   `Adapter` protocol. Remaining **live** work is the one-time human setup: set `POSTIZ_API_TOKEN`,
+   connect the YouTube channels in Postiz, map them in `distribution.postiz.channels`, flip
+   `distribution.enabled: true`, then run the go-live production test (one real post). **Full plan:
+   DISTRIBUTION.md.** **Gate:** QC is manual (§9) — only clips Eric ✅'d in Slack reach
+   distribution; the in-code guardrail filters run as defense-in-depth behind that human gate.
 4. **Launch the first channels.** **Concept 1 "Hot Seat" (debate)** + **Concept 2 "Money Fights"
    (finance)** (§9 resolved) — top velocity + highest open-lane EV. Run each concept's go/no-go
    gate (in `CHANNEL-CONCEPTS.md`). Clearing First Blood → Signal on the scoreboard.
@@ -176,12 +178,12 @@ needs Eric's accounts connected once.
 
 All four §9 decisions are made. Build to these; do **not** re-ask.
 
-- **Posting → Repurpose.io** (NOT Ssemble). Eric is trialing [repurpose.io](https://repurpose.io)
-  for a few weeks alongside content production. Build distribution as a **thin adapter** to its
-  watch-folder / cloud-trigger model (drop approved clip + metadata into the watched source →
-  Repurpose auto-posts to connected channels). Keep it **loosely coupled** so it's swappable —
-  Eric is "not that dependent on it long-term." One-time human step = connect accounts in the
-  Repurpose dashboard (matches the one-time-auth constraint exactly). *(Affects build 3.)*
+- **Posting → Postiz (preferred)** via its public API — we hold `POSTIZ_API_TOKEN` and connect the
+  YouTube channels directly in Postiz, so posting is API-native and under our control.
+  **Repurpose.io is the swappable alternative** (`distribution.provider: repurpose`). One-time
+  human step = connect the channels in Postiz + set the token, then flip `distribution.enabled`.
+  **Full plan: DISTRIBUTION.md.** *(Updated 2026-06-23 — was Repurpose.io-first; Postiz is now
+  preferred. Affects build 3.)*
 - **Launch order → Hot Seat + Money Fights** first (Concept 1 + Concept 2), per the recommendation.
 - **Whop → CUT ENTIRELY.** Pure owned-first. Whop was stripped from the system (2026-06): the
   Whop-payout path in `src/ycp/capture.py` and Whop references across the docs are removed. No turbo lane.
@@ -223,7 +225,8 @@ All four §9 decisions are made. Build to these; do **not** re-ask.
 3. Run `.venv/bin/python -m ycp demo` — see the closed loop produce a Double-Down Brief.
 4. Skim `src/ycp/sourcing.py` + `scoreboard.py` + `brief.py` to learn the system's shape.
 5. Confirm the §9 open questions with Eric.
-6. Start at **autopilot roadmap #3** (wire distribution → Repurpose.io) — #1 (source fix) and #2
-   (orchestrator) are already done. Then launch Hot Seat + Money Fights (#4).
+6. **Autopilot roadmap #3** (distribution) is now **adapter-built** — Postiz preferred (see
+   DISTRIBUTION.md); the remaining live step is the one-time Postiz connect + token, then launch
+   Hot Seat + Money Fights (#4). #1 (source fix) and #2 (orchestrator) are done.
 
 > Welcome aboard. The research is solid and the game is set — now make the engine run itself. 🏁

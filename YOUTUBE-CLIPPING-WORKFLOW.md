@@ -2,7 +2,7 @@
 
 **Owner:** Eric Cromartie / Rising Tides
 **Operator:** Jay (infrastructure + sourcing + QC)
-**Repurpose + distribution engine:** Ssemble (Business plan — unlimited social accounts)
+**Distribution engine:** Postiz (public API, preferred — we hold the token) · Repurpose.io (alternative). See DISTRIBUTION.md.
 **Goal:** $15,000+/month, durable, on a closed-loop **automated** system
 **Strategy:** **Owned-first** — your faceless channels are the asset; the owned monetization stack (TikTok Creator Rewards + YPP + affiliate + brand deals) is the revenue. _(Whop cut 2026-06; pure owned-first — supersedes the original Whop-first framing.)_
 **Last updated:** 2026-06-22 (owned-first reconciliation)

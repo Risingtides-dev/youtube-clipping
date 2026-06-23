@@ -24,10 +24,16 @@ weekly maintenance that keeps tightening autonomy.
 > *(QC is MANUAL per Eric — §9: he reviews content in Slack before it posts, until the output earns
 > autonomy. The in-code guardrail filters run as defense-in-depth behind that human gate.)*
 
+> **📡 Distribution update (2026-06-23):** posting is now **Postiz (public API, preferred)** — we hold
+> `POSTIZ_API_TOKEN` and connect the YouTube channels directly in Postiz; **Repurpose.io is the
+> swappable alternative**. The adapter is built (selected by `distribution.provider`); the live step
+> is the one-time connect + token. **Canonical plan: DISTRIBUTION.md.** Where "Repurpose.io" appears
+> below, read "the distribution provider (Postiz preferred)."
+
 **Done when ALL of these hold (the loop's exit criteria):**
 1. **The queue is real** — `ycp source` writes a non-empty `data/source-queue.md` from `config/niches.yaml` (HANDOFF §8 #1 fixed).
 2. **The loop is one command on a timer** — an orchestrator (`ycp autopilot` / `scripts/autopilot.sh`) chains `source → clip → qc-post → capture → brief → scoreboard` (clip does the enhancement stages — captions/hook/CTA/gameplay — via its flags; brief does the scoring; there's no `ycp enhance`/`ycp score` subcommand; `distribute` slots in once build #3 is wired), runs end-to-end without errors on a real invocation, and is scheduled (cron/launchd). *(Note: `source`/`clip` hit the live network + real machine, so there's no fully-offline demo of the whole chain.)*
-3. **Posting is automated after a one-time auth** — distribution is wired to **Repurpose.io** (§9 resolved); a human connects accounts once in its dashboard, then approved clips post themselves via its watch-folder / cloud trigger. Account *creation* stays human (deliberate).
+3. **Posting is automated after a one-time auth** — distribution goes through **Postiz** (public API, preferred; `POSTIZ_API_TOKEN` + channels connected once) or the **Repurpose.io** alternative, per `distribution.provider` (DISTRIBUTION.md). A human connects the channels once; then approved clips post automatically. Account *creation* stays human (deliberate).
 4. **Channels are live** — ≥1 owned channel is launched (Concept 1 "Hot Seat" + Concept 2 "Money Fights", §9 resolved) and running its go/no-go gate; first real clips are posted; the scoreboard moves off Day 0 (First Blood → Signal).
 5. **It runs unattended between approvals** — end-to-end with no babysitting; the one recurring human action is the **Slack ✅/❌ review** (§9), until Eric flips to auto once trust is earned.
 6. **Guardrails get enforced in code, not just docs** — an avoid-list gate inside sourcing (net-new; none exists today) and a no-music / transformation check before publish. These run as **defense-in-depth** behind the human QC gate (and become the primary gate if/when QC flips to auto).
@@ -85,8 +91,9 @@ BUILD ORDER (HANDOFF §8 — follow it, but always attack the current autonomy b
      — captions/hook/CTA/gameplay — via its flags; brief does the scoring; there is NO `ycp enhance`
      or `ycp score` subcommand; `distribute` slots in once build #3 is wired). scripts/daily.sh +
      weekly.sh are starting points. Make it idempotent, safe to re-run, and log each stage.
-  3. DISTRIBUTION → Repurpose.io (§9 RESOLVED — build it; the one-time human action is connecting
-     accounts in the Repurpose dashboard, not a decision to escalate). Wire the approved-clip handoff
+  3. DISTRIBUTION → Postiz (preferred — we hold the token) / Repurpose.io (alternative), per
+     `distribution.provider` — adapter BUILT (DISTRIBUTION.md). The one-time human action is
+     connecting the channels in Postiz + setting the token, not a decision to escalate. Wire the approved-clip handoff
      as a thin, swappable adapter to its watch-folder/cloud-trigger model (drop approved clip +
      metadata → it auto-posts to connected channels). GATE: QC is manual — only clips Eric ✅'d in
      Slack reach distribution; the build #6 filters run as defense-in-depth behind that. A human
@@ -149,7 +156,7 @@ EACH CYCLE, DO EXACTLY THIS:
 EXIT CRITERIA (all must hold):
   ✓ `ycp source` writes a real non-empty data/source-queue.md from niches.yaml.
   ✓ An orchestrator chains source→clip→qc-post→capture→brief→scoreboard (no `ycp enhance`/`score` — clip + brief cover those), runs clean end-to-end on a real invocation, and is scheduled (cron/launchd).
-  ✓ Distribution wired to Repurpose.io (§9); after one-time account auth in its dashboard, approved clips post automatically.
+  ✓ Distribution wired — Postiz (preferred) / Repurpose.io (alternative) per `distribution.provider` (DISTRIBUTION.md); after the one-time channel connect + token, approved clips post automatically.
   ✓ ≥1 owned channel launched + running its go/no-go gate; first real clips live; scoreboard off Day 0.
   ✓ The loop runs unattended end-to-end between approvals; recurring human touch = the Slack ✅/❌ review (§9).
   ✓ Guardrails in code — an avoid-list gate inside sourcing (net-new; none today) + a no-music / transformation check before publish. These run as defense-in-depth behind the manual QC gate.

@@ -49,6 +49,7 @@ cp .env.example .env
 Then edit `.env` and fill what you need:
 - **`DEEPSEEK_API_KEY`** — the viral hook agent (paste from 1Password). Without it, hooks fall back to a transcript heuristic.
 - **`SLACK_BOT_TOKEN` / `SLACK_APP_TOKEN` / `SLACK_QC_CHANNEL`** — required for the manual QC board (clips post here for your ✅/❌). See `.env.example` for the app scopes.
+- **`POSTIZ_API_TOKEN`** — the preferred distribution path (Postiz public API). Generated in Postiz → Settings → Developers → Public API. Self-hosted? also set `POSTIZ_API_URL`. See **DISTRIBUTION.md**. Without it, distribution stays off (or switch to the Repurpose.io alternative).
 - The rest (YouTube API key) is optional.
 
 ## 4. Verify it works
@@ -66,7 +67,7 @@ Then edit `.env` and fill what you need:
 1. **ffmpeg w/ libass** — §1 (captions + burned hooks).
 2. **DeepSeek key** — §3 (real hooks vs heuristic).
 3. **Slack QC** — §3 creds, so clips post for your review. QC is **manual** (`qc.auto: false`) until you trust the output.
-4. **Repurpose.io** — connect accounts, point it at the outbox folder (`data/outbox`), then set `distribution.enabled: true` in `config/settings.yaml`.
+4. **Distribution (Postiz — preferred)** — set `POSTIZ_API_TOKEN`, connect the YouTube channels in Postiz, map each to its integration id in `distribution.postiz.channels`, then set `distribution.enabled: true` in `config/settings.yaml`. (Alternative: Repurpose.io watch-folder — set `provider: repurpose`.) Full plan: **DISTRIBUTION.md**.
 5. **Channels** — create/auth Hot Seat + Money Fights (account creation stays human by design).
 
 ## 6. Schedule it (only once §1–§5 are in and you've approved real output)

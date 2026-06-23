@@ -49,8 +49,9 @@ A `pre-commit` hook enforces this (blocks the code-plus-many-docs "sweep" shape)
 installs it. Intentional mixed commit? `YCP_ALLOW_MIXED=1 git commit ...`.
 
 ## Decisions already made — don't relitigate (HANDOFF §9)
-Owned-first, **single** revenue lane · **Whop cut entirely** · posting via **Repurpose.io** (thin,
-swappable adapter; Eric connects accounts once) · **QC is manual** in Slack until trust is earned
+Owned-first, **single** revenue lane · **Whop cut entirely** · posting via **Postiz** (public API,
+preferred — we hold the token; **Repurpose.io** is the swappable alternative — see DISTRIBUTION.md) ·
+**QC is manual** in Slack until trust is earned
 (`qc.auto: false`) · hook titles via **DeepSeek** (key in 1Password, transcript-heuristic fallback).
 Launch order: **Hot Seat** (debate) + **Money Fights** (finance).
 
