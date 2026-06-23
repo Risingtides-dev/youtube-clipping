@@ -7,8 +7,9 @@ without it.
 
 **The toolbox (all free, local, already installed except OpenCV):**
 `yt-dlp` (download) · `ffmpeg` (everything visual) · `whisper` (transcribe/translate)
-· `Ollama`/`llama3.1:8b` (hook titles, translation) · **OpenCV** (face tracking — one
-lightweight add). No per-clip cost, no cap.
+· **DeepSeek** (viral hook titles — the hook agent, `src/ycp/hooks.py`) · `Ollama`/`llama3.1:8b`
+(bulk translation only) · **OpenCV** (face tracking — one lightweight add). No per-clip cost
+except the (tiny) hook-agent API call; no cap.
 
 ---
 
@@ -20,7 +21,7 @@ lightweight add). No per-clip cost, no cap.
 | 2 | **Face Tracking** (keep face centered in 9:16) | Detect face per sampled frame → smoothed crop path that follows the speaker → time-varying ffmpeg crop. Falls back to center-crop. | OpenCV + ffmpeg | build cycle |
 | 3 | **Auto Captioning** | Whisper → SRT → burned captions (✓ shipped). Upgrade: word-level "karaoke" highlight via ASS styling | whisper + ffmpeg | **shipped** · karaoke = polish |
 | 4 | **Caption Translation** (translate, keep original audio) | Translate the SRT text locally, keep audio, re-burn. Unlimited languages. | Ollama (or whisper `--task translate` for →EN) | build cycle |
-| 5 | **Hook Title & CTA** | Generate a hook title + CTA from the transcript, burn a top title banner + a timed "Subscribe" CTA banner | Ollama + ffmpeg drawtext | build cycle |
+| 5 | **Hook Title & CTA** | Generate a hook title + CTA from the transcript, burn a top title banner + a timed "Subscribe" CTA banner | DeepSeek (hook agent) + ffmpeg drawtext | shipped (`hooks.py`) |
 | 6 | **Game Video** (gameplay strip for retention) | Stack the clip over a looping gameplay clip (Subway Surfers / parkour / GTA) — split-screen vstack | ffmpeg + a gameplay-loop library | build cycle (needs footage) |
 
 **Quality vs Ssemble, honest:** captioning and gameplay-stack are *at parity* immediately

@@ -13,11 +13,29 @@ See SSEMBLE-PARITY.md for the full map.
 """
 from __future__ import annotations
 
+import functools
 import subprocess
 from pathlib import Path
 
 # Stock macOS font — always present, no spaces in the path (drawtext-safe).
 DEFAULT_FONT = "/System/Library/Fonts/Helvetica.ttc"
+
+
+@functools.lru_cache(maxsize=None)
+def ffmpeg_has_filter(name: str) -> bool:
+    """True if this ffmpeg build exposes `name` (e.g. 'drawtext', 'subtitles').
+
+    Some ffmpeg builds ship without libass/libfreetype, so drawtext/subtitles are
+    absent. We detect once and let callers degrade gracefully (uncaptioned clip)
+    instead of hard-failing — captions/hooks render automatically once ffmpeg has
+    the text libs. See SSEMBLE-PARITY.md / setup notes for the libass install.
+    """
+    try:
+        out = subprocess.run(["ffmpeg", "-hide_banner", "-filters"],
+                             capture_output=True, text=True, timeout=30).stdout
+    except (OSError, subprocess.SubprocessError):
+        return False
+    return any(line.split()[1:2] == [name] for line in out.splitlines() if line.strip())
 
 
 def title_filter(textfile: str, font: str = DEFAULT_FONT, fontsize: int = 56) -> str:
@@ -76,6 +94,10 @@ def apply_overlay(video: Path, out: Path, title: str | None = None, cta: str | N
                   cta_window: tuple[float, float] = (2.0, 7.0), font: str = DEFAULT_FONT) -> Path:
     """Burn a hook title + CTA banner. Text is written to files next to `out` and
     referenced via textfile= (escaping-proof). Runs ffmpeg with cwd=out.parent."""
+    if not ffmpeg_has_filter("drawtext"):
+        print("  ⚠ ffmpeg lacks drawtext (no libfreetype) — skipping hook/CTA overlay; "
+              "reinstall ffmpeg with libfreetype/libass to burn titles")
+        return video
     workdir = out.parent
     title_file = cta_file = None
     if title:
@@ -102,7 +124,8 @@ def stack_gameplay(clip: Path, gameplay: Path, out: Path) -> Path:
 def pick_title(transcript: str, max_words: int = 9) -> str:
     """Heuristic hook title from the transcript: first question, else punchiest line.
 
-    Zero-dependency default. (Optional Ollama upgrade is a later cycle.)
+    Zero-dependency fallback used when the DeepSeek hook agent (hooks.best_hook)
+    is unavailable — e.g. no DEEPSEEK_API_KEY configured for the run.
     """
     sentences = [s.strip() for s in transcript.replace("!", ".").replace("?", "?.").split(".")
                  if s.strip()]

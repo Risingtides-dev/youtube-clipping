@@ -5,6 +5,12 @@ sourcing:
   per_creator: 3
   # Only consider source videos published within this many days.
   lookback_days: 14
+  # How many recent videos per creator to re-fetch with REAL metadata.
+  # Flat enumerate is cheap but returns view_count=None; we pay the non-flat
+  # cost only on this many most-recent candidates, then rank by velocity.
+  meta_fetch: 8
+  # How many creators to fetch concurrently (I/O-bound; thread pool).
+  concurrency: 8
   # Minimum view count for a source video to be queue-worthy.
   min_views: 50000
   # How many days of "fresh velocity" still counts as hot.
@@ -35,6 +41,27 @@ transcribe:
   model: models/ggml-base.en.bin   # GGML model; relative to repo root or absolute
   language: en
   openai_model: small              # only used by the openai-whisper fallback
+
+hooks:
+  # Viral hooks are the highest-leverage creative lever, so the hook agent uses a
+  # strong model via DeepSeek (NOT a local model). Needs DEEPSEEK_API_KEY (key in
+  # 1Password — inject via `op read`, never on disk); falls back to the transcript
+  # heuristic if absent. Override the model here if desired.
+  model: deepseek-chat
+
+qc:
+  # MANUAL review (Eric's call, 2026-06-22): every clip is posted to the Slack QC
+  # channel and nothing advances to distribution until Eric ✅ it. He oversees the
+  # content to make sure it's right. Flip to true ONLY once the output has earned
+  # trust over time. The in-code guardrail filters still run as defense-in-depth.
+  auto: false
+
+distribution:
+  # Posting target = Repurpose.io (§9). DISABLED until Eric connects accounts in
+  # the Repurpose dashboard and points it at the outbox folder, then flip to true.
+  enabled: false
+  adapter: repurpose_outbox
+  outbox: data/outbox      # the folder Repurpose.io watches (sync to Drive/Dropbox)
 
 platforms: [youtube, tiktok, instagram]
 lanes: [whop, owned]   # whop = cash engine (permissioned), owned = YPP asset

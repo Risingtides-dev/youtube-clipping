@@ -54,6 +54,7 @@ def env() -> dict[str, str | None]:
         "slack_bot_token": os.getenv("SLACK_BOT_TOKEN") or None,
         "slack_app_token": os.getenv("SLACK_APP_TOKEN") or None,
         "slack_qc_channel": os.getenv("SLACK_QC_CHANNEL") or None,
+        "deepseek_api_key": os.getenv("DEEPSEEK_API_KEY") or None,
     }
 
 

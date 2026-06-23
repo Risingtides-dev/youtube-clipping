@@ -8,6 +8,8 @@
   ycp capture                   Stage 5: snapshot public views (+ --whop-csv FILE)
   ycp brief                     Stage 5: generate the weekly brief (+ --post-slack)
   ycp clip <url>                Stage 2: hybrid yt-dlp+whisper+ffmpeg vertical clips
+  ycp scoreboard                Race to $15K — the gamified game state (+ --demo)
+  ycp autopilot                 chain the daily loop end-to-end (+ --skip-source/--no-clip)
 """
 from __future__ import annotations
 
@@ -18,6 +20,7 @@ from . import brief as brief_mod
 from . import capture as capture_mod
 from . import db
 from . import mock as mock_mod
+from . import scoreboard as scoreboard_mod
 from . import sourcing as sourcing_mod
 from .config import ROOT
 
@@ -97,7 +100,8 @@ def _cmd_clip(args: argparse.Namespace) -> int:
     created = clip_mod.run(args.url, max_clips=args.max, lane=args.lane,
                            source_creator=args.creator, channel=args.channel,
                            hook_cta=args.hook_cta, title=args.title, cta=args.cta,
-                           gameplay=Path(args.gameplay) if args.gameplay else None)
+                           gameplay=Path(args.gameplay) if args.gameplay else None,
+                           angle=args.angle)
     if not created:
         print("✗ no clips produced (check the URL / yt-dlp / whisper output)")
         return 1
@@ -105,6 +109,34 @@ def _cmd_clip(args: argparse.Namespace) -> int:
     for c in created:
         print(f"  · {c['clip_id']}  {c['len']}s  score {c['score']}  “{c['preview']}…”")
     print("\nNext: `ycp qc-post` to send them to Slack for approval.")
+    return 0
+
+
+def _cmd_autopilot(args: argparse.Namespace) -> int:
+    from . import autopilot as autopilot_mod
+    results = autopilot_mod.run(
+        max_videos=args.max_videos,
+        skip_source=args.skip_source,
+        do_clip=not args.no_clip,
+        hook_cta=not args.no_hook,
+    )
+    failures = [r for r in results if not r.ok]
+    return 1 if failures else 0
+
+
+def _cmd_scoreboard(args: argparse.Namespace) -> int:
+    if args.demo:
+        demo_db = ROOT / "data" / "demo.db"
+        if not demo_db.exists():
+            mock_mod.seed(demo_db)
+        df = db.clips_with_latest_metrics(demo_db)
+    else:
+        df = db.clips_with_latest_metrics()
+    md = scoreboard_mod.build(df)
+    out = ROOT / "SCOREBOARD.md"
+    out.write_text(md)
+    print(md)
+    print(f"\n✓ scoreboard written to {out}")
     return 0
 
 
@@ -129,10 +161,25 @@ def build_parser() -> argparse.ArgumentParser:
     cl.add_argument("--creator", default="unknown", help="source creator label")
     cl.add_argument("--channel", default="clips", help="target posting channel label")
     cl.add_argument("--hook-cta", action="store_true", help="burn hook title + CTA banner")
-    cl.add_argument("--title", help="explicit hook title (else auto-picked from transcript)")
+    cl.add_argument("--angle", default="", help="hook angle: debate|agitation|finance (tunes the hook agent)")
+    cl.add_argument("--title", help="explicit hook title (else hook agent writes one)")
     cl.add_argument("--cta", default="Subscribe for more", help="CTA banner text")
     cl.add_argument("--gameplay", help="path to a gameplay loop to split-screen under clips")
     cl.set_defaults(fn=_cmd_clip)
+    sb = sub.add_parser("scoreboard", help="Race to $15K — the gamified game state")
+    sb.add_argument("--demo", action="store_true", help="render from demo data")
+    sb.set_defaults(fn=_cmd_scoreboard)
+    ap = sub.add_parser("autopilot",
+                        help="chain the daily loop: source→clip→qc→capture→brief→scoreboard")
+    ap.add_argument("--max-videos", type=int, default=5,
+                    help="max new source videos to clip this run (default 5)")
+    ap.add_argument("--skip-source", action="store_true",
+                    help="reuse the existing DB queue instead of re-fetching (fast)")
+    ap.add_argument("--no-clip", action="store_true",
+                    help="run the chain but skip the (slow) clip stage")
+    ap.add_argument("--no-hook", action="store_true",
+                    help="don't burn the hook title + CTA overlay")
+    ap.set_defaults(fn=_cmd_autopilot)
     return p
 
 

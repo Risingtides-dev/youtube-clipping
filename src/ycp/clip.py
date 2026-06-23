@@ -21,7 +21,7 @@ import tempfile
 from dataclasses import dataclass
 from pathlib import Path
 
-from . import db, enhance
+from . import db, enhance, hooks
 from .config import ROOT
 from .srt import Segment, slice_and_shift, to_srt
 from .transcribe import transcribe
@@ -122,7 +122,8 @@ def cut_vertical(video: Path, cand: Candidate, srt_text: str, out_path: Path,
 def run(url: str, max_clips: int = 6, lane: str = "whop",
         source_creator: str = "unknown", channel: str = "clips",
         hook_cta: bool = False, title: str | None = None, cta: str = "Subscribe for more",
-        gameplay: Path | None = None, db_path: Path | None = None) -> list[dict]:
+        gameplay: Path | None = None, source_video_id: str | None = None,
+        angle: str = "", db_path: Path | None = None) -> list[dict]:
     """Full pipeline: url -> ranked vertical captioned clips registered for QC.
 
     Optional owned enhancements (Ssemble parity): `hook_cta` burns a top title
@@ -146,7 +147,7 @@ def run(url: str, max_clips: int = 6, lane: str = "whop",
                 cur = staged
                 if hook_cta:
                     cur = enhance.apply_overlay(cur, workdir / f"{clip_id}_ov.mp4",
-                                                title=title or enhance.pick_title(cand.text),
+                                                title=title or hooks.best_hook(cand.text, angle=angle),
                                                 cta=cta)
                 if gameplay:
                     cur = enhance.stack_gameplay(cur, gameplay, workdir / f"{clip_id}_gp.mp4")
@@ -157,7 +158,8 @@ def run(url: str, max_clips: int = 6, lane: str = "whop",
             out.parent.mkdir(parents=True, exist_ok=True)
             shutil.move(str(cur), str(out))
             db.insert_clip({
-                "clip_id": clip_id, "source_creator": source_creator, "channel": channel,
+                "clip_id": clip_id, "source_video_id": source_video_id,
+                "source_creator": source_creator, "channel": channel,
                 "platform": "youtube", "lane": lane, "fmt": "auto-clip",
                 "hook_type": "tbd", "length_sec": int(cand.duration), "status": "pending_qc",
                 "post_url": str(out),  # local preview path until posted

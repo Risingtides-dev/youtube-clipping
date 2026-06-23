@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- launchd agent for the YouTube clipping autopilot. Runs the daily loop at 7am.
+     Install (only once the pipeline runs end-to-end — distribution wired + channels live):
+       cp scripts/com.risingtides.ycp-autopilot.plist ~/Library/LaunchAgents/
+       launchctl load ~/Library/LaunchAgents/com.risingtides.ycp-autopilot.plist
+     Disable:
+       launchctl unload ~/Library/LaunchAgents/com.risingtides.ycp-autopilot.plist -->
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.risingtides.ycp-autopilot</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>/bin/bash</string>
+        <string>/Users/ecfromthedc/Desktop/Development/Youtube Clipping Workflow/scripts/autopilot.sh</string>
+    </array>
+    <key>StartCalendarInterval</key>
+    <dict>
+        <key>Hour</key>
+        <integer>7</integer>
+        <key>Minute</key>
+        <integer>0</integer>
+    </dict>
+    <key>StandardOutPath</key>
+    <string>/Users/ecfromthedc/Desktop/Development/Youtube Clipping Workflow/data/autopilot-launchd.out.log</string>
+    <key>StandardErrorPath</key>
+    <string>/Users/ecfromthedc/Desktop/Development/Youtube Clipping Workflow/data/autopilot-launchd.err.log</string>
+    <key>RunAtLoad</key>
+    <false/>
+</dict>
+</plist>

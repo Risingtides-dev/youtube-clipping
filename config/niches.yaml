@@ -1,0 +1,158 @@
+# config/niches.yaml — Stage 1 sourcing spec. Promoted by the discovery loop
+# (RESEARCH-GOAL-AND-LOOP.md), Cycle 1 (2026-06-22). Ranked source list +
+# evidence live in SOURCE-INTELLIGENCE.md; the angles in CHANNEL-CONCEPTS.md.
+#
+# handle = a YouTube @handle. lane: whop = permissioned cash engine ·
+# owned = your YPP transformation channel. runs_whop_campaign = a FUNDED paid
+# clip campaign was verified this cycle (re-verify live before relying on it —
+# pools deplete and rosters rotate).
+#
+# Velocity numbers in `notes` are real (live yt-dlp peak views/hour, 2026-06-22).
+
+niches:
+  # ── Concept 1: debate/agitation flashpoints (highest engagement velocity) ──
+  - name: debate-agitation
+    lane_default: owned
+    creators:
+      - name: "Jubilee"
+        handle: "@jubilee"
+        lane: owned
+        runs_whop_campaign: false
+        notes: "ROS 81.8. 51,725 views/hr peak — top live velocity. Surrounded 1v25 format; structured-debate policy carve-out. Clip the single 20-40s clash."
+      - name: "No Jumper"
+        handle: "@nojumper"
+        lane: owned
+        runs_whop_campaign: false
+        notes: "ROS 66.4. Culture/clash interviews; downsizing = open lane. Edgier — screen for protected-class lines."
+      - name: "Pop Culture Crisis"
+        handle: "@PopCultureCrisis"
+        lane: owned
+        runs_whop_campaign: false
+        notes: "ROS 62.6. Daily culture-war hot takes; lower brand risk than Fresh&Fit; open lane."
+      - name: "Whatever"
+        handle: "@whatever"
+        lane: owned
+        runs_whop_campaign: false
+        notes: "ROS 60.4. ⚠ MAIN HANDLE STALE (newest long-form 255d). ~27M/mo lives in the clips/shorts ecosystem — source from clip channels, not this handle."
+      - name: "Whatever (clips)"
+        handle: "@whatever2ND"
+        lane: owned
+        runs_whop_campaign: false
+        notes: "ROS 65.3 (Cycle 2). ✅ LIVE Whatever clip surface (fresh 0d) — use this instead of the stale main handle. Fresh dating/gender debate flashpoints."
+      - name: "Modern Day Debate"
+        handle: "@moderndaydebate"
+        lane: owned
+        runs_whop_campaign: false
+        notes: "ROS 56.8. Pure 1v1 debate format; small but clip-friendly; open lane."
+
+  # ── Concept 2: money fights / finance conflict (highest US RPM) ──
+  - name: finance-money
+    lane_default: owned
+    creators:
+      - name: "Ramit Sethi"
+        handle: "@ramitsethi"
+        lane: owned
+        runs_whop_campaign: false
+        notes: "ROS 72.6 — #1 OPEN LANE. Money for Couples = real couples fighting over money. US top-RPM, dramatically under-clipped. Lead bet for Concept 2."
+      - name: "Graham Stephan"
+        handle: "@GrahamStephan"
+        lane: owned
+        runs_whop_campaign: false
+        notes: "ROS 65.2. Income/net-worth confessions; US top-RPM finance."
+      - name: "Codie Sanchez"
+        handle: "@codiesanchezCT"
+        lane: owned
+        runs_whop_campaign: false
+        notes: "ROS 65.2. 'Buy boring businesses' contrarian, quote-dense; open-moderate."
+      - name: "My First Million"
+        handle: "@MyFirstMillionPod"
+        lane: owned
+        runs_whop_campaign: false
+        notes: "ROS 61.7. 860+ eps of '$X/mo business' hooks; thin clipper field. ⚠ HubSpot-owned — test takedown posture early."
+      - name: "Alex Hormozi"
+        handle: "@AlexHormozi"
+        lane: owned
+        runs_whop_campaign: false
+        notes: "ROS 67.6 (Cycle 2). 9,713 views/hr — huge velocity; 258K median; business/MMO monologues; clip-tolerated. Saturated, so win on speed."
+      - name: "Gary Vaynerchuk"
+        handle: "@garyvee"
+        lane: owned
+        runs_whop_campaign: false
+        notes: "ROS 55.4 (Cycle 2). *Explicitly encourages clipping* = top compliance; business/keynote quote-bait; high RPM."
+
+  # ── Concept 3: clip-paid cash engine (Whop-first, paid THIS week) ──
+  - name: cash-campaigns
+    lane_default: whop
+    creators:
+      - name: "Diary of a CEO"
+        handle: "@TheDiaryOfACEO"
+        lane: whop
+        runs_whop_campaign: true
+        notes: "ROS 86.5 — #1 OVERALL. PAID via Clipster CPM network. 15M subs, 2.1M median views, contrarian-expert debate moments. Re-verify pool live."
+      - name: "Iced Coffee Hour"
+        handle: "@TheIcedCoffeeHour"
+        lane: whop
+        runs_whop_campaign: true
+        notes: "ROS 71.1. Ran a Whop campaign (~$3k, 10k-view min). Net-worth reveals; US top-RPM. Re-verify live."
+      - name: "Iman Gadzhi"
+        handle: "@ImanGadzhi"
+        lane: whop
+        runs_whop_campaign: true
+        notes: "ROS 58.7. PAID Whop Content Rewards (~$5-50/1k). Talking-head MMO; saturated — speed matters."
+      - name: "Jay Shetty"
+        handle: "@jayshetty"
+        lane: whop
+        runs_whop_campaign: true
+        notes: "ROS 49.5. PAID Whop (On Purpose). Calm wisdom-drop monologues = Shorts-native. Program = saturated."
+      # Mark Cuban / Trailblazers — VERIFIED PAID (ContentRewards $1/1k, $4k pool, ~60% remaining,
+      # low saturation). Add @handle once confirmed; agent-sourced, no live velocity pull yet.
+
+  # ── Concept 4: crash-out comedy/reaction (volume → YPP) ──
+  - name: comedy-crashout
+    lane_default: owned
+    creators:
+      - name: "Bad Friends"
+        handle: "@BadFriends"
+        lane: owned
+        runs_whop_campaign: false
+        notes: "ROS 71.6 — OPEN LANE. 21,725 views/hr; high meme density; fan-clip swarm thinner than Theo/KillTony."
+      - name: "Kill Tony"
+        handle: "@killtony"
+        lane: owned
+        runs_whop_campaign: false
+        notes: "ROS 68.9. Self-contained 60s sets = most clippable format in podcasting. Saturated — clip the moments their editors skip."
+      - name: "Flagrant"
+        handle: "@OfficialFlagrant"
+        lane: whop
+        runs_whop_campaign: false
+        notes: "ROS 64.7. Schulz controversy-bait, big guests. ⚠ political eps = limited ads; cherry-pick."
+      - name: "This Is Important"
+        handle: "@thisisimportant"
+        lane: owned
+        runs_whop_campaign: false
+        notes: "ROS 45.2 but CLEAREST WHITE SPACE — Workaholics IP, no official clips channel. ⚠ iHeart-distributed — test Content ID before scaling."
+
+  # ── Concept 5: myth-busting health/fitness (evergreen, advertiser-safe) ──
+  - name: health-mythbusting
+    lane_default: owned
+    creators:
+      - name: "Dr Mike Israetel"
+        handle: "@RenaissancePeriodization"
+        lane: owned
+        runs_whop_campaign: false
+        notes: "ROS 62.9. #OutOfContextSeries actively encourages clips; meme-able myth-busting."
+      - name: "Bryan Johnson"
+        handle: "@bryanjohnson"
+        lane: owned
+        runs_whop_campaign: false
+        notes: "ROS 61.1. '$2M/yr to not die' = inherently viral; Netflix tailwind; open-moderate. Clip the persona, not prescriptions."
+      - name: "Jeff Nippard"
+        handle: "@JeffNippard"
+        lane: owned
+        runs_whop_campaign: false
+        notes: "ROS 58.1. 'Research actually says X' protocol density; advertiser-safe (pro-evidence)."
+      - name: "Dr Gabrielle Lyon"
+        handle: "@drgabriellelyon"
+        lane: owned
+        runs_whop_campaign: false
+        notes: "ROS 45.0 but WHITESPACE — 'muscle = organ of longevity' sticky thesis; women's-health/longevity lane open."

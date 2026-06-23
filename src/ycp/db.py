@@ -209,6 +209,33 @@ def pending_qc_clips(db_path: Path | None = None) -> list[dict[str, Any]]:
         return [dict(r) for r in cur.fetchall()]
 
 
+def approved_clips(db_path: Path | None = None) -> list[dict[str, Any]]:
+    """Clips approved by QC and not yet posted — the distribution work queue."""
+    with connect(db_path) as conn:
+        cur = conn.execute("SELECT * FROM clips WHERE status = 'approved'")
+        return [dict(r) for r in cur.fetchall()]
+
+
+def clipped_source_ids(db_path: Path | None = None) -> set[str]:
+    """Set of source_video_ids that already have clips — lets the autopilot skip
+    re-clipping (and re-downloading) the same source on a repeat run."""
+    with connect(db_path) as conn:
+        cur = conn.execute(
+            "SELECT DISTINCT source_video_id FROM clips WHERE source_video_id IS NOT NULL"
+        )
+        return {r["source_video_id"] for r in cur.fetchall()}
+
+
+def source_queue(db_path: Path | None = None, limit: int | None = None) -> list[dict[str, Any]]:
+    """Previously-sourced videos, hottest first — lets the autopilot reuse a queue
+    without re-hitting the network (`--skip-source`)."""
+    q = "SELECT * FROM source_videos ORDER BY view_velocity DESC"
+    if limit:
+        q += f" LIMIT {int(limit)}"
+    with connect(db_path) as conn:
+        return [dict(r) for r in conn.execute(q).fetchall()]
+
+
 # ── readers (pandas, for scoring) ────────────────────────────────────────────
 
 def clips_with_latest_metrics(db_path: Path | None = None) -> pd.DataFrame:

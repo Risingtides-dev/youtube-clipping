@@ -2,6 +2,9 @@
 
 One self-contained repo. Everything for the play lives here.
 
+> 👉 **New here (human or agent)? Start with [HANDOFF.md](HANDOFF.md)** — the cold-start
+> onboarding doc: current state, the strategy, and what to build next.
+
 ### 📋 Strategy & math
 - **[YOUTUBE-CLIPPING-WORKFLOW.md](YOUTUBE-CLIPPING-WORKFLOW.md)** — full strategy, the
   two-lane model, the $10K math, A-Z pipeline, 90-day roadmap, risk register.
