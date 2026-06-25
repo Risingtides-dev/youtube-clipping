@@ -18,7 +18,9 @@ import subprocess
 from pathlib import Path
 from typing import Any
 
-from .config import settings
+from . import db
+from .config import DATA_DIR, settings
+from .db import connect
 
 
 def _is_rclone(dest: str) -> bool:
@@ -55,3 +57,23 @@ def archive_clip(clip_path: Path, meta: dict[str, Any]) -> str | None:
         return f"{target}/{clip_path.name}"
     except (OSError, subprocess.SubprocessError):
         return None
+
+
+def prune_local(db_path: Path | None = None) -> int:
+    """Delete local clip files (+ sidecars) for clips already POSTED — they're live on
+    YouTube and saved in the drive, so the local copy is redundant. Keeps data/clips/ from
+    stacking up on the machine. Returns the number of files removed."""
+    clips_dir = DATA_DIR / "clips"
+    if not clips_dir.exists():
+        return 0
+    db.init_db(db_path)
+    with connect(db_path) as conn:
+        ids = [r["clip_id"] for r in
+               conn.execute("SELECT clip_id FROM clips WHERE status='posted'").fetchall()]
+    removed = 0
+    for cid in ids:
+        for f in (clips_dir / f"{cid}.mp4", clips_dir / f"{cid}.json"):
+            if f.exists():
+                f.unlink()
+                removed += 1
+    return removed

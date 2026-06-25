@@ -138,6 +138,13 @@ def _cmd_autopilot(args: argparse.Namespace) -> int:
     return 1 if failures else 0
 
 
+def _cmd_clean(_: argparse.Namespace) -> int:
+    from . import archive
+    n = archive.prune_local()
+    print(f"✓ pruned {n} local files for posted clips (data/clips/ kept lean)")
+    return 0
+
+
 def _cmd_scoreboard(args: argparse.Namespace) -> int:
     if args.demo:
         demo_db = ROOT / "data" / "demo.db"
@@ -170,6 +177,8 @@ def build_parser() -> argparse.ArgumentParser:
     qr.set_defaults(fn=_cmd_qc_decide, decision="reject")
     cap = sub.add_parser("capture", help="snapshot public views")
     cap.set_defaults(fn=_cmd_capture)
+    sub.add_parser("clean", help="delete local files of posted clips (keep data/clips/ lean)"
+                   ).set_defaults(fn=_cmd_clean)
     br = sub.add_parser("brief", help="generate the weekly Double-Down Brief")
     br.add_argument("--post-slack", action="store_true", help="also post to the QC channel")
     br.set_defaults(fn=_cmd_brief)

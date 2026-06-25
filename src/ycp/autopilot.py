@@ -55,6 +55,15 @@ CHANNEL_SLUGS: dict[str, str] = {
 }
 
 
+def connected_channels() -> set[str]:
+    """Channel slugs with a mapped Postiz integration id — the only ones that can post.
+    Empty when distribution is off, so dev/demo runs aren't gated."""
+    d = settings().get("distribution", {})
+    if not d.get("enabled"):
+        return set()
+    return {k for k, v in (d.get("postiz", {}).get("channels") or {}).items() if v}
+
+
 def channel_for(niche: str | None) -> str:
     """Map a niche label → its owned-channel slug (the Postiz routing key). Pure.
 
@@ -146,9 +155,14 @@ def run(
         if not do_clip:
             return "skipped (--no-clip)"
         clipped = db.clipped_source_ids(db_path)
-        todo = select_unclipped(queue, clipped, max_videos, lanes)
+        # Only clip sources whose channel can actually post — otherwise the clips just park
+        # locally and stack up. (No-op when distribution is off / nothing connected.)
+        conn = connected_channels()
+        pool = [r for r in queue if not conn or channel_for(r.get("niche")) in conn]
+        todo = select_unclipped(pool, clipped, max_videos, lanes)
         if not todo:
-            return "0 new sources to clip (all caught up)"
+            return ("0 new sources to clip (all caught up)" if not conn
+                    else f"0 to clip for connected channels: {', '.join(sorted(conn))}")
         made = 0
         for row in todo:
             created = clip_mod.run(
@@ -244,6 +258,15 @@ def run(
                 f"[channel not connected], {r.get('blocked', 0)} blocked, {r.get('failed', 0)} failed)")
 
     _stage("distribute", _distribute, results, log)
+
+    # 8 ─ CLEANUP ─────────────────────────────────────────────────────────────────
+    # Posted clips are live on YouTube + saved to the drive → drop their local copies so
+    # data/clips/ never stacks up on the machine.
+    def _cleanup() -> str:
+        from . import archive
+        return f"{archive.prune_local(db_path)} local files pruned (posted → live + archived)"
+
+    _stage("cleanup", _cleanup, results, log)
 
     ok = sum(1 for r in results if r.ok)
     log(f"▶ autopilot done: {ok}/{len(results)} stages ok")

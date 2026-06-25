@@ -33,6 +33,17 @@ def test_channel_for_routes_health_niche_to_phoenix_protocol():
     assert autopilot.channel_for(None) == "clips"          # unknown → loud-fail fallback
 
 
+def test_connected_channels_only_mapped(monkeypatch):
+    monkeypatch.setattr(autopilot, "settings", lambda: {"distribution": {"enabled": True,
+        "postiz": {"channels": {"phoenix-protocol": "id1", "money-fights": ""}}}})
+    assert autopilot.connected_channels() == {"phoenix-protocol"}
+
+
+def test_connected_channels_empty_when_distribution_off(monkeypatch):
+    monkeypatch.setattr(autopilot, "settings", lambda: {"distribution": {"enabled": False}})
+    assert autopilot.connected_channels() == set()
+
+
 def test_channel_slugs_all_have_a_postiz_mapping():
     # The routing key a clip carries MUST be a configured Postiz channel, or
     # distribution can't find an integration id for it.

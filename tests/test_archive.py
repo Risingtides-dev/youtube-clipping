@@ -28,3 +28,21 @@ def test_archive_off_returns_none(tmp_path, monkeypatch):
     clip.write_bytes(b"v")
     monkeypatch.setattr(archive, "settings", lambda: {"archive": {"dest": ""}})
     assert archive.archive_clip(clip, {"clip_id": "c"}) is None
+
+
+def test_prune_local_removes_only_posted(tmp_path, monkeypatch):
+    from ycp import db
+    dbp = tmp_path / "t.db"
+    clips = tmp_path / "clips"
+    clips.mkdir()
+    monkeypatch.setattr(archive, "DATA_DIR", tmp_path)   # clips_dir → tmp_path/"clips"
+    db.init_db(dbp)
+    for cid, status in (("p1", "posted"), ("q1", "pending_qc")):
+        db.insert_clip({"clip_id": cid, "channel": "c", "platform": "youtube", "lane": "owned",
+                        "fmt": "x", "hook_type": "q", "length_sec": 30, "status": status}, dbp)
+        (clips / f"{cid}.mp4").write_bytes(b"v")
+        (clips / f"{cid}.json").write_text("{}")
+    removed = archive.prune_local(dbp)
+    assert removed == 2                                   # p1.mp4 + p1.json
+    assert not (clips / "p1.mp4").exists()
+    assert (clips / "q1.mp4").exists()                    # un-posted clip kept (still needs to post)
