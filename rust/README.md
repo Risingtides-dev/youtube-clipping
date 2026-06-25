@@ -1,0 +1,45 @@
+# ycp — Rust port (in progress)
+
+A single static binary replacing the Python `src/ycp` for lightweight, robust distribution
+to the team. **The Python version stays the live production system until this reaches parity**
+— both read the same `data/clips.db` and `config/settings.yaml`, so they interoperate during
+the port and can be cross-checked module-for-module.
+
+## Why Rust here
+It's an orchestration + data tool (shell out to ffmpeg/whisper/yt-dlp, call REST APIs,
+analyze a dataframe, drive a CLI) — not Python ML. One binary `scp`'d to N machines beats a
+Python env per machine; compile-time safety kills cross-machine dependency drift.
+
+## Build & run
+```
+cd rust && cargo build --release
+./target/release/ycp status        # cross-checks against the Python output
+```
+
+## Port status (parity-checked against Python, module by module)
+
+| Module | Python | Rust | State |
+|--------|--------|------|-------|
+| config (root, settings, .env) | config.py | config.rs | ✅ done |
+| db (schema, models, queries) | db.py | db.rs | ✅ spine done |
+| CLI skeleton | cli.py | main.rs | ✅ `init`, `status` |
+| scoring (scores, rollups, scale/kill) | scoring.py | scoring.rs | ⏳ next |
+| scoreboard / brief (markdown) | scoreboard.py, brief.py | — | ⏳ |
+| optimize / experiment (learning, A/B) | optimize.py, experiment.py | — | ⏳ |
+| guardrails / srt / captions-chunking | guardrails.py, srt.py, captions.py | — | ⏳ |
+| hooks (score + select; DeepSeek via reqwest) | hooks.py | — | ⏳ |
+| capture / distribute / archive (APIs) | capture.py, distribute.py, archive.py | — | ⏳ |
+| sourcing / transcribe / clip / reframe (native) | *.py | — | ⏳ (shell out to yt-dlp/whisper/ffmpeg) |
+| captions render (Pillow → image+cosmic-text) | captions.py | — | ⏳ (hardest port) |
+| autopilot (orchestrator) | autopilot.py | — | ⏳ (last — wires it all) |
+
+## Order (dependency-first, compiling at every step)
+1. **Foundation** — config, db, CLI (✅).
+2. **Deterministic core** — scoring → scoreboard/brief → optimize/experiment. Port + cross-check
+   numbers against Python on the same DB. (Pure logic; no native deps.)
+3. **API clients** — reqwest+serde for DeepSeek, Postiz, YouTube Analytics, Gemini.
+4. **Native pipeline** — sourcing (yt-dlp), transcribe (whisper.cpp), clip/reframe (ffmpeg/opencv),
+   captions render (image crate). Shell out where the tool is already native.
+5. **Autopilot** — chain the stages; flip the crons from the Python `ycp` to the Rust `ycp`.
+
+Cut over only when `cargo build --release` is green AND each stage matches Python output.

@@ -1,0 +1,21 @@
+[package]
+name = "ycp"
+version = "0.1.0"
+edition = "2021"
+description = "YouTube clipping closed-loop ops — Rust port (in progress; Python in src/ycp stays live)"
+
+[[bin]]
+name = "ycp"
+path = "src/main.rs"
+
+[dependencies]
+anyhow = "1"
+chrono = "0.4"
+clap = { version = "4", features = ["derive"] }
+serde = { version = "1", features = ["derive"] }
+serde_yaml = "0.9"
+rusqlite = { version = "0.31", features = ["bundled"] }  # bundled = static sqlite, no system dep
+
+[profile.release]
+lto = true        # lean, fast single binary to ship to teammates
+strip = true
