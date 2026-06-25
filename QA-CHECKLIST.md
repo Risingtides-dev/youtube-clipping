@@ -32,7 +32,11 @@ The definition of "flawless" for this build. The Ralph loop works this top-to-bo
       title *"…Official Music Video"* → reject *"title flag"*; `fmt:"raw-reupload"` → reject
       *"not transformed"*; clean `auto-clip` → **approve**. `creator_allowed("Joe Rogan")`/Tate → False,
       Jubilee → True; `filter_creators` drops Andrew Tate, keeps Ramit.
-- [ ] **qc**: auto-approves a transformed clip, rejects a bad one
+- [x] **qc**: auto-approves a transformed clip, rejects a bad one
+      — `distribute.auto_qc` over a temp DB (3 pending) → `{approved:1, rejected:2}`. qc_log:
+      `good-00→approve`; `musictitle-01→reject (title flag: 'music video')`; `raw-02→reject (not
+      transformed)`. (NB: `has_music` isn't a clips column → DB path screens music by title +
+      the sourcing avoid-list, both verified.)
 - [ ] **distribute** (sandbox/mock, NO live post): posts only top `max_per_run`, marks the rest
       `skipped`, parks unconnected channels
 - [ ] **capture**: resolves a Postiz post_id → YouTube videoId + pulls analytics (read-only, real)
