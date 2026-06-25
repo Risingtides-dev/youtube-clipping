@@ -37,8 +37,11 @@ The definition of "flawless" for this build. The Ralph loop works this top-to-bo
       `good-00→approve`; `musictitle-01→reject (title flag: 'music video')`; `raw-02→reject (not
       transformed)`. (NB: `has_music` isn't a clips column → DB path screens music by title +
       the sourcing avoid-list, both verified.)
-- [ ] **distribute** (sandbox/mock, NO live post): posts only top `max_per_run`, marks the rest
+- [x] **distribute** (sandbox/mock, NO live post): posts only top `max_per_run`, marks the rest
       `skipped`, parks unconnected channels
+      — `distribute.run` on a real temp DB w/ a FAKE adapter (no network), `max_per_run:1`, 3 connected
+      + 1 unmapped: `{delivered:1, skipped:2, parked:1, failed:0}`. DB: `phx-best→posted` (highest score),
+      `phx-low/phx-mid→skipped`, `money-unmapped→approved` (parked). Plus `pytest tests/test_distribute.py` → 14 green.
 - [ ] **capture**: resolves a Postiz post_id → YouTube videoId + pulls analytics (read-only, real)
 - [ ] **optimize**: produces weights + appends IMPROVEMENT-LOG.md from real data
 - [ ] **milestones**: reads real channel stats, correct progress line, no false crossings
