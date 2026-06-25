@@ -52,6 +52,7 @@ niches:
       - name: "Ramit Sethi"
         handle: "@ramitsethi"
         lane: owned
+        has_captions: true  # burns his own word captions (verified on a rendered frame 2026-06-25) — defer, don't stack ours (RULE #1)
         notes: "ROS 72.6 — #1 OPEN LANE. Money for Couples = real couples fighting over money. US top-RPM, dramatically under-clipped. Lead bet for Concept 2."
       - name: "Graham Stephan"
         handle: "@GrahamStephan"
