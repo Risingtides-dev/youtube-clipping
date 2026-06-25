@@ -145,3 +145,13 @@ ab:
   hero_score: 0.9     # 0-1 predicted moment score to qualify as a hero worth testing
   variants: 3         # distinct-style hooks to test on a hero
   min_views: 1000     # views a variant needs before we trust the A/B winner
+
+# --- Archive (the Phoenix Protocol drive) ------------------------------------
+# Every produced clip + a JSON sidecar is copied to durable storage so clips live in a
+# central library, not on local disk. The same clips still upload to Postiz via API.
+#   dest: ""               → off (clips stay in local data/clips/)
+#   dest: "~/Library/CloudStorage/GoogleDrive-.../My Drive/Phoenix Protocol"  → Drive for Desktop folder
+#   dest: "phoenix:Phoenix Protocol/clips"  → rclone remote (recommended; `rclone config` once)
+archive:
+  dest: ""
+  subfolder_by_channel: true

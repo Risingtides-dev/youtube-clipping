@@ -21,7 +21,7 @@ import tempfile
 from dataclasses import dataclass
 from pathlib import Path
 
-from . import captions, db, enhance, hooks, reframe, vision
+from . import archive, captions, db, enhance, hooks, reframe, vision
 from .config import ROOT, settings
 from .srt import Segment, slice_and_shift
 from .transcribe import transcribe
@@ -218,4 +218,12 @@ def run(url: str, max_clips: int = 6, lane: str = "owned",
                 created.append({"clip_id": variant_id, "file": str(out),
                                 "score": cand.score, "len": cand.duration,
                                 "preview": cand.text[:80]})
+                # Archive to the Phoenix Protocol drive (best-effort; never blocks posting).
+                dest = archive.archive_clip(out, {
+                    "clip_id": variant_id, "channel": channel, "hook": hook["text"],
+                    "hook_type": hook["type"], "source_creator": source_creator,
+                    "score": cand.score, "length_sec": int(cand.duration),
+                    "experiment_id": exp_id})
+                if dest:
+                    print(f"  · archived → {dest}")
     return created

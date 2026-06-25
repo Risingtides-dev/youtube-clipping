@@ -1,0 +1,57 @@
+"""Archive every produced clip + its metadata to the 'Phoenix Protocol' drive.
+
+So clips live in a central, durable library (audit + rotation) instead of piling up on
+local disk — and that library is the same set of clips Postiz posts. Best-effort and
+decoupled: a failed archive NEVER breaks the pipeline (the clip still posts from local).
+
+`settings.archive.dest`:
+  - ""                → off (clips stay in local data/clips/).
+  - an absolute/~ path → copy there, e.g. a Google Drive for Desktop synced folder.
+  - "remote:path"      → rclone copy (recommended: a Google Drive remote — headless,
+                         portable, team-mirrorable). One-time: `rclone config` → Drive remote.
+"""
+from __future__ import annotations
+
+import json
+import shutil
+import subprocess
+from pathlib import Path
+from typing import Any
+
+from .config import settings
+
+
+def _is_rclone(dest: str) -> bool:
+    """rclone remotes look like 'name:path'; local paths are absolute or ~-relative."""
+    return ":" in dest and not dest.startswith(("/", "~", "."))
+
+
+def archive_clip(clip_path: Path, meta: dict[str, Any]) -> str | None:
+    """Copy a clip + a JSON sidecar to the configured drive. Returns the destination, or
+    None when archiving is off or fails (caller treats it as best-effort)."""
+    cfg = settings().get("archive", {})
+    dest = (cfg.get("dest") or "").strip()
+    if not dest or not clip_path.exists():
+        return None
+    sub = (meta.get("channel") or "clips") if cfg.get("subfolder_by_channel", True) else ""
+    sidecar = clip_path.with_suffix(".json")
+    try:
+        sidecar.write_text(json.dumps(meta, indent=2, default=str))
+    except OSError:
+        sidecar = None
+    files = [f for f in (clip_path, sidecar) if f]
+    try:
+        if _is_rclone(dest):
+            target = "/".join(p for p in (dest.rstrip("/"), sub) if p)
+            for f in files:
+                subprocess.run(["rclone", "copy", str(f), target],
+                               check=True, capture_output=True, timeout=300)
+        else:
+            target_dir = Path(dest).expanduser() / sub
+            target_dir.mkdir(parents=True, exist_ok=True)
+            for f in files:
+                shutil.copy2(str(f), str(target_dir / f.name))
+            target = str(target_dir)
+        return f"{target}/{clip_path.name}"
+    except (OSError, subprocess.SubprocessError):
+        return None
