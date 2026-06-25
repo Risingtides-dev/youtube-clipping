@@ -11,8 +11,8 @@ The definition of "flawless" for this build. The Ralph loop works this top-to-bo
   fix forward, never break it. Stage by explicit path; never `git add -A`.
 
 ## Gates (objective)
-- [ ] `ruff check src tests` clean
-- [ ] `pytest -q` all green (record the count)
+- [x] `ruff check src tests` clean — `.venv/bin/ruff check src tests` → "All checks passed!"
+- [x] `pytest -q` all green (record the count) — `.venv/bin/pytest -q` → **121 passed in 1.55s**
 
 ## Pipeline stages — verify on REAL inputs
 - [ ] **source**: `ycp source` returns a ranked queue from live yt-dlp (record N)
