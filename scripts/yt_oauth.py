@@ -24,6 +24,7 @@ from googleapiclient.discovery import build
 ROOT = Path(__file__).resolve().parents[1]
 ENV_PATH = ROOT / ".env"
 SCOPES = [
+    "https://www.googleapis.com/auth/youtube.force-ssl",  # manage videos incl. DELETE (cleanup)
     "https://www.googleapis.com/auth/youtube.readonly",
     "https://www.googleapis.com/auth/yt-analytics.readonly",
     "https://www.googleapis.com/auth/yt-analytics-monetary.readonly",

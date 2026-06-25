@@ -138,6 +138,13 @@ def _cmd_autopilot(args: argparse.Namespace) -> int:
     return 1 if failures else 0
 
 
+def _cmd_delete_video(args: argparse.Namespace) -> int:
+    from . import youtube_ops
+    n = youtube_ops.delete_videos(args.video_ids)
+    print(f"✓ deleted {n}/{len(args.video_ids)} YouTube videos")
+    return 0 if n == len(args.video_ids) else 1
+
+
 def _cmd_milestones(_: argparse.Namespace) -> int:
     from . import milestones
     r = milestones.check()
@@ -195,6 +202,9 @@ def build_parser() -> argparse.ArgumentParser:
                    ).set_defaults(fn=_cmd_clean)
     sub.add_parser("milestones", help="check monetization thresholds + alert Slack on new crossings"
                    ).set_defaults(fn=_cmd_milestones)
+    dv = sub.add_parser("delete-video", help="delete YouTube video(s) by id (needs write-scope re-auth)")
+    dv.add_argument("video_ids", nargs="+", help="YouTube video id(s) to delete")
+    dv.set_defaults(fn=_cmd_delete_video)
     br = sub.add_parser("brief", help="generate the weekly Double-Down Brief")
     br.add_argument("--post-slack", action="store_true", help="also post to the QC channel")
     br.set_defaults(fn=_cmd_brief)
