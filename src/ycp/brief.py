@@ -90,6 +90,19 @@ def _money_section(scored: pd.DataFrame) -> str:
             f"- By platform: {plat_line}\n- {lead}")
 
 
+def _retention_section(scored: pd.DataFrame) -> str:
+    """Hook health from the audience-retention curve — where viewers actually leave."""
+    if scored is None or scored.empty or "swipe_away_pct" not in scored:
+        return "No retention data yet — accrues ~24-48h after the first posts."
+    s = scored.dropna(subset=["swipe_away_pct"])
+    if s.empty:
+        return "No retention data yet — accrues ~24-48h after the first posts."
+    g = s.groupby("hook_type")["swipe_away_pct"].mean().sort_values()
+    return (f"- Avg hook drop-off: **{s['swipe_away_pct'].mean():.0f}%** lost by the hook's end.\n"
+            f"- Best-holding hook: **{g.index[0]}** ({g.iloc[0]:.0f}%) · "
+            f"worst: **{g.index[-1]}** ({g.iloc[-1]:.0f}%) → make more of the former.")
+
+
 def build(df: pd.DataFrame, week_start: str | None = None) -> str:
     """Return the full Double-Down Brief as markdown (deterministic)."""
     top_n = settings()["brief"]["top_n"]
@@ -112,6 +125,9 @@ _Generated from {n_clips} clips with metrics. Virality score 0–100; revenue in
 
 ## 💰 Where the money is
 {_money_section(a["scored"])}
+
+## 🎯 Hook health (retention)
+{_retention_section(a["scored"])}
 
 ---
 

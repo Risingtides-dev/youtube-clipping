@@ -25,6 +25,18 @@ def test_capture_public_snapshots_posted_clips(tmp_path, monkeypatch):
     assert by_id["c2"]["views"] == 0  # no URL -> never captured
 
 
+def test_analyze_retention_reads_hook_dropoff():
+    # 40% gone by the hook's end (20% of the clip); the cliff is at the 10% mark.
+    curve = [(0.0, 1.0), (0.1, 0.6), (0.2, 0.6), (0.5, 0.5), (1.0, 0.4)]
+    r = capture.analyze_retention(curve)
+    assert r["swipe_away_pct"] == 40.0
+    assert r["biggest_drop_at"] == 0.1 and r["biggest_drop_pct"] == 40.0
+
+
+def test_analyze_retention_none_for_short_curve():
+    assert capture.analyze_retention([(0.0, 1.0)]) is None
+
+
 def test_capture_public_skips_when_no_views(tmp_path, monkeypatch):
     dbp = tmp_path / "t.db"
     db.init_db(dbp)

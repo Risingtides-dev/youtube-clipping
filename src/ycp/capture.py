@@ -21,6 +21,7 @@ from .config import env, settings
 from .db import connect
 
 YT_WATCH = "youtube.com/watch?v="
+HOOK_WINDOW = 0.2   # first 20% of a Short ≈ the hook window (where the hook must hold)
 
 
 def _ytdlp_views(url: str) -> int | None:
@@ -121,6 +122,41 @@ def _yt_creds():
                        client_secret=secret, token_uri="https://oauth2.googleapis.com/token")
 
 
+def analyze_retention(curve: list[tuple[float, float]]) -> dict | None:
+    """Turn an audience-retention curve [(elapsedRatio, watchRatio), ...] into the signals
+    that explain WHY a clip wins or loses: how well the HOOK holds (swipe-away in the first
+    20%) and where the single biggest drop happens. Pure. None if the curve is unreadably short.
+
+    watchRatio ≈ fraction of viewers still watching at that point (≈1.0 at the very start).
+    """
+    pts = sorted((float(e), float(w)) for e, w in curve if e is not None and w is not None)
+    if len(pts) < 3:
+        return None
+    hook_pts = [w for e, w in pts if e <= HOOK_WINDOW]
+    hook_ret = hook_pts[-1] if hook_pts else pts[0][1]
+    drops = [(pts[i][1] - pts[i + 1][1], pts[i + 1][0]) for i in range(len(pts) - 1)]
+    biggest_drop, at = max(drops, key=lambda d: d[0]) if drops else (0.0, 0.0)
+    return {
+        "hook_retention": round(hook_ret, 3),
+        "swipe_away_pct": round(max(0.0, 1.0 - hook_ret) * 100, 1),   # % gone by the hook's end
+        "biggest_drop_pct": round(max(0.0, biggest_drop) * 100, 1),
+        "biggest_drop_at": round(at, 2),                              # where (0-1 of the clip)
+    }
+
+
+def _fetch_retention(ya, video_id: str, start: str, end: str) -> list[tuple[float, float]] | None:
+    """Pull the audience-retention curve for one video (None if YT has no data yet)."""
+    try:
+        rep = ya.reports().query(
+            ids="channel==MINE", startDate=start, endDate=end,
+            metrics="audienceWatchRatio", dimensions="elapsedVideoTimeRatio",
+            filters=f"video=={video_id}").execute()
+    except Exception:  # noqa: BLE001
+        return None
+    rows = rep.get("rows") or []
+    return [(r[0], r[1]) for r in rows] if rows else None
+
+
 def capture_full_analytics(db_path: Path | None = None) -> int:
     """Per-clip retention % + ad revenue from the YouTube Analytics API (owned channel).
 
@@ -156,12 +192,17 @@ def capture_full_analytics(db_path: Path | None = None) -> int:
                 dimensions="video", filters=f"video=={vid}").execute()
         except Exception:  # noqa: BLE001 — one video's failure must not stop the rest
             continue
-        row = (rep.get("rows") or [[vid, 0, 0.0, 0.0]])[0]  # [video, views, avgViewPct, estRevenue]
+        srows = rep.get("rows")
+        if not srows:
+            continue  # no owned data yet — don't overwrite the public-view snapshot with zeros
+        row = srows[0]  # [video, views, avgViewPct, estRevenue]
+        ret = analyze_retention(_fetch_retention(ya, vid, start, today) or [])
         db.insert_metric({
             "clip_id": r["clip_id"],
             "views": int(row[1]) if len(row) > 1 else 0,
             "retention_pct": float(row[2]) if len(row) > 2 else 0.0,
             "ad_revenue": float(row[3]) if len(row) > 3 else 0.0,
+            "swipe_away_pct": ret["swipe_away_pct"] if ret else None,  # hook drop-off (the 'why')
         }, db_path)
         n += 1
     return n
