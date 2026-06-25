@@ -22,8 +22,8 @@ cd rust && cargo build --release
 |--------|--------|------|-------|
 | config (root, settings, .env) | config.py | config.rs | ✅ done |
 | db (schema, models, queries) | db.py | db.rs | ✅ spine done |
-| CLI skeleton | cli.py | main.rs | ✅ `init`, `status` |
-| scoring (scores, rollups, scale/kill) | scoring.py | scoring.rs | ⏳ next |
+| CLI skeleton | cli.py | main.rs | ✅ `init`, `status`, `scoreboard` |
+| scoring (scores, rollups, scale/kill) | scoring.py | scoring.rs | ✅ done — parity-exact |
 | scoreboard / brief (markdown) | scoreboard.py, brief.py | — | ⏳ |
 | optimize / experiment (learning, A/B) | optimize.py, experiment.py | — | ⏳ |
 | guardrails / srt / captions-chunking | guardrails.py, srt.py, captions.py | — | ⏳ |

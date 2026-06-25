@@ -2,6 +2,7 @@
 //! The Python in ../src/ycp stays the live system until this reaches parity.
 mod config;
 mod db;
+mod scoring;
 mod util;
 
 use std::collections::BTreeMap;
@@ -22,6 +23,8 @@ enum Cmd {
     Init,
     /// Clip counts by status + total views (reads the same data/clips.db).
     Status,
+    /// Deterministic scoring rollup — top creators by virality (cross-checks scoring.py).
+    Scoreboard,
 }
 
 fn main() -> Result<()> {
@@ -44,6 +47,19 @@ fn main() -> Result<()> {
             }
             for (status, n) in by {
                 println!("  {status:<12} {n}");
+            }
+        }
+        Cmd::Scoreboard => {
+            let settings = config::load_settings(&root)?;
+            let cfg = scoring::ScoreCfg::from_settings(&settings);
+            let clips = db::clips_with_latest_metrics(&conn)?;
+            let a = scoring::analyze(&clips, &cfg);
+            println!("scored {} clips · top creators by virality:", a.scored.len());
+            for r in a.by_creator.iter().take(5) {
+                println!(
+                    "  {:<26} score {:>5.1} · {:>9.0} views · n={}",
+                    r.key, r.avg_score, r.avg_views, r.n
+                );
             }
         }
     }
