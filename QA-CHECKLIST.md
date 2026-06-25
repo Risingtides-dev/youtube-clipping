@@ -15,7 +15,7 @@ The definition of "flawless" for this build. The Ralph loop works this top-to-bo
 - [x] `pytest -q` all green (record the count) — `.venv/bin/pytest -q` → **121 passed in 1.55s**
 
 ## Pipeline stages — verify on REAL inputs
-- [ ] **source**: `ycp source` returns a ranked queue from live yt-dlp (record N)
+- [x] **source**: `ycp source` returns a ranked queue from live yt-dlp (record N) — `.venv/bin/python -m ycp source` → **51 videos queued** → `data/source-queue.md`; live yt-dlp scores (top: Jubilee 3,363 / 76,111 views)
 - [ ] **clip render**: Read a real rendered frame, confirm ALL — captions legible + lowercase;
       hook present, lowercase, held ≥7s; **NO double subtitles** (RULE #1: hook stays + ONE
       caption set); duration 20–35s (ffprobe); vertical 1080x1920
