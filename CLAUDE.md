@@ -12,8 +12,9 @@ captioned clips → post them across **owned** faceless channels → monetize th
 scoreboard; the system runs the channels.
 
 ## Start here (read order)
-1. **HANDOFF.md** — current state, what's built vs. not, what to build next (§8), decisions
-   already made (§9), guardrails (§10).
+0. **STATUS.md** — ⭐ READ FIRST. Living snapshot of where we are right now, what just happened,
+   the operating config, and the forward plan. The single clearest current-state doc.
+1. **HANDOFF.md** — original cold-start brief: what's built vs. not, decisions made (§9), guardrails (§10).
 2. **WIN-GOAL-AND-LOOP.md** — the operative build loop. Paste its `/loop` prompt to run a cycle.
    (It supersedes the older `*-GOAL-AND-LOOP.md` docs, kept as references.)
 3. **CHANNEL-PLAYBOOK.md** — one card per channel: the sources to clip, the format, the go/no-go
