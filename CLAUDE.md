@@ -19,6 +19,10 @@ scoreboard; the system runs the channels.
 3. **CHANNEL-PLAYBOOK.md** — one card per channel: the sources to clip, the format, the go/no-go
    gate, and the metric each channel optimizes on. Each channel is a path one agent owns + optimizes.
    (Backed by `SOURCE-INTELLIGENCE.md` = source scores + `CHANNEL-CONCEPTS.md` = angle rationale.)
+4. **RESEARCH-shorts-2026.md** + **CONTENT-STRATEGY.md** — **COME CORRECT: read before any content
+   decision.** RESEARCH = the 2026 Shorts evidence base + the doctrine (research-first, ground every
+   call in data — not vibes); CONTENT-STRATEGY = that research applied (formats, hooks, length,
+   posting windows, monetization). Don't ship guesses; start from the evidence, let the loop tune it.
 
 ## Run + verify
 ```bash
