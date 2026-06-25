@@ -11,7 +11,7 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 
 echo "→ creating venv…"
-uv venv
+[ -d .venv ] || uv venv   # idempotent: re-runs (after a src edit) reuse the existing venv
 
 echo "→ installing dev tooling + package (non-editable)…"
 uv pip install pytest ruff           # dev tools
