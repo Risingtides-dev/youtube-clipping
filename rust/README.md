@@ -27,7 +27,7 @@ cd rust && cargo build --release
 | scoreboard / brief (markdown) | scoreboard.py, brief.py | scoreboard.rs, brief.rs | ✅ done — parity-exact (byte-identical vs Python on clips.db + demo.db; tabulate "pipe" tables, decimal alignment, `%g`, comma-money all reproduced) |
 | optimize (learning weights, creative prefs) | optimize.py | optimize.rs | ✅ done — parity-exact |
 | experiment (A/B winners) | experiment.py | experiment.rs | ✅ done — parity-exact (byte-identical winners vs experiment.py on a synthetic A/B db: sorted groups, runner-up ties, min-views + single-variant skips) |
-| guardrails / srt / captions-chunking | guardrails.py, srt.py, captions.py | — | ⏳ |
+| guardrails / srt / captions-chunking | guardrails.py, srt.py, captions.py | guardrails.rs, srt.rs, captions.rs | ✅ done — parity-exact (srt slice/shift/format + caption chunks byte-identical vs Python across 4 windows on a sample SRT; guardrails gates match Python on full battery. `ycp captions <srt> <start> <end>` is the cross-check harness. Note: only chunking ported here — Pillow render is the separate "captions render" row. Python `round()` reproduced via `{:.N}` format-parse, verified byte-identical on a timing battery.) |
 | hooks (score + select; DeepSeek via reqwest) | hooks.py | — | ⏳ |
 | capture / distribute / archive (APIs) | capture.py, distribute.py, archive.py | — | ⏳ |
 | sourcing / transcribe / clip / reframe (native) | *.py | — | ⏳ (shell out to yt-dlp/whisper/ffmpeg) |

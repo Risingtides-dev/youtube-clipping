@@ -1,15 +1,19 @@
 //! `ycp` — YouTube clipping closed-loop ops (Rust port, in progress).
 //! The Python in ../src/ycp stays the live system until this reaches parity.
 mod brief;
+mod captions;
 mod config;
 mod db;
 mod experiment;
+mod guardrails;
 mod optimize;
 mod scoreboard;
 mod scoring;
+mod srt;
 mod util;
 
 use std::collections::BTreeMap;
+use std::path::PathBuf;
 
 use anyhow::Result;
 use clap::{Parser, Subcommand};
@@ -45,6 +49,17 @@ enum Cmd {
     Optimize,
     /// A/B hook winners — top posted variant per experiment (cross-checks experiment.py).
     Experiment,
+    /// SRT slice + caption chunking on a file (cross-checks srt.py + captions.py).
+    Captions {
+        /// Path to an SRT file (e.g. whisper output).
+        srt: PathBuf,
+        /// Clip window start, seconds.
+        #[arg(default_value_t = 0.0)]
+        start: f64,
+        /// Clip window end, seconds.
+        #[arg(default_value_t = 1e9)]
+        end: f64,
+    },
 }
 
 fn main() -> Result<()> {
@@ -126,6 +141,15 @@ fn main() -> Result<()> {
                     "{}|{}|{}|{}|{:.1}",
                     w.experiment, w.winning_hook, w.winning_views, w.variants, w.margin
                 );
+            }
+        }
+        Cmd::Captions { srt, start, end } => {
+            let text = std::fs::read_to_string(&srt)?;
+            let sliced = srt::slice_and_shift(&srt::parse_srt(&text), start, end);
+            print!("{}", srt::to_srt(&sliced));
+            // chunks, pipe-delimited, for byte-diffing against captions.py.
+            for ch in captions::build_chunks(&sliced, captions::MAX_WORDS, captions::MIN_DWELL) {
+                println!("{:.3}|{:.3}|{}", ch.start, ch.end, ch.text());
             }
         }
     }

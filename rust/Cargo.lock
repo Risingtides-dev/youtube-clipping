@@ -789,6 +789,7 @@ dependencies = [
  "chrono",
  "chrono-tz",
  "clap",
+ "regex",
  "rusqlite",
  "serde",
  "serde_json",

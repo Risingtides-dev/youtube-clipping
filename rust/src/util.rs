@@ -45,6 +45,13 @@ pub fn money(x: f64) -> String {
     }
 }
 
+/// Python `round(x, ndigits)`. Both Rust's `{:.N}` formatting and CPython's `round` do correct
+/// round-half-to-even on the *exact* double (verified byte-identical across a timing battery), so
+/// format-then-parse reproduces Python's rounding — including ties — without a fragile tolerance.
+pub fn round_to(x: f64, ndigits: usize) -> f64 {
+    format!("{x:.ndigits$}").parse().unwrap_or(x)
+}
+
 /// Mirror `_views`: 6.1M / 431K / 9.
 pub fn views(x: f64) -> String {
     if x >= 1_000_000.0 {
