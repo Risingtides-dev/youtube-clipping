@@ -14,6 +14,7 @@ Nothing secret is printed; creds go straight to .env.
 from __future__ import annotations
 
 import glob
+import json
 import os
 import sys
 from pathlib import Path
@@ -31,12 +32,34 @@ SCOPES = [
 ]
 
 
+def _existing_client_id() -> str:
+    """The client_id of the token already in .env (so re-auth re-uses the SAME OAuth client)."""
+    try:
+        for line in ENV_PATH.read_text().splitlines():
+            if line.startswith("YT_CLIENT_ID="):
+                return line.split("=", 1)[1].strip()
+    except OSError:
+        pass
+    return ""
+
+
 def _find_client_json() -> str:
     if len(sys.argv) > 1:
         return sys.argv[1]
     hits = glob.glob(str(Path.home() / "Downloads" / "client_secret*.json"))
     if not hits:
         sys.exit("No client_secret*.json found in ~/Downloads — pass the path as an argument.")
+    # With several client_secrets in Downloads, "newest" grabs the wrong OAuth client. If we
+    # already hold a token, prefer the client_secret whose client_id matches it.
+    want = _existing_client_id().split("-")[0]
+    if want:
+        for h in hits:
+            try:
+                cfg = next(iter(json.load(open(h)).values()))
+                if cfg.get("client_id", "").split("-")[0] == want:
+                    return h
+            except (OSError, ValueError, StopIteration, KeyError):
+                continue
     return max(hits, key=os.path.getmtime)
 
 
