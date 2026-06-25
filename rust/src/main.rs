@@ -121,6 +121,22 @@ enum Cmd {
         #[arg(long, default_value_t = 50_000)]
         min_views: i64,
     },
+    /// Caption render — frame schedule + rasterize to PNGs (cross-checks captions.render_overlay).
+    /// Schedule lines (cfg|, frames|, per-frame title/chunk) are byte-checkable; the pixels
+    /// (ab_glyph vs Pillow) are visually-equivalent, not byte-identical.
+    Caprender {
+        /// Path to an SRT file (e.g. whisper output).
+        srt: PathBuf,
+        /// Clip duration, seconds.
+        #[arg(default_value_t = 3.0)]
+        duration: f64,
+        /// Hook title (empty = no title).
+        #[arg(default_value = "")]
+        title: String,
+        /// Where to write PNG frames (default: a temp dir).
+        #[arg(long)]
+        out: Option<PathBuf>,
+    },
     /// Face-pan crop-x expression from a track (cross-checks reframe.crop_x_expr). Pure.
     CropX {
         /// Track as comma-separated t:frac pairs (e.g. 0:0.2,0.3:0.2,6:0.85).
@@ -280,6 +296,44 @@ fn main() -> Result<()> {
                     r.title.unwrap_or_default()
                 );
             }
+        }
+        Cmd::Caprender { srt, duration, title, out } => {
+            let settings = config::load_settings(&root).ok();
+            let text = std::fs::read_to_string(&srt)?;
+            let segs = srt::parse_srt(&text);
+            let chunks = captions::build_chunks(&segs, captions::MAX_WORDS, captions::MIN_DWELL);
+            let title_opt = if title.is_empty() { None } else { Some(title.as_str()) };
+            let out_dir = out.unwrap_or_else(|| std::env::temp_dir().join("ycp_caprender"));
+            let n = captions::render_overlay(
+                &chunks, duration, &out_dir, title_opt, captions::SIZE, captions::FPS, None,
+                settings.as_ref(),
+            )?;
+            // Deterministic frame schedule — pipe-delimited for byte-diffing against captions.py.
+            let cfg = captions::caption_cfg(settings.as_ref());
+            println!("cfg|{}|{:.4}|{:.4}", cfg.case, cfg.size_pct, cfg.hook_hold_sec);
+            println!("frames|{n}");
+            for f in 0..n {
+                let t = f as f64 / captions::FPS as f64;
+                let title_shown = title_opt.is_some() && t < cfg.hook_hold_sec;
+                let active = chunks
+                    .iter()
+                    .find(|c| c.start <= t && t < c.end)
+                    .map(|c| c.text())
+                    .unwrap_or_default();
+                println!("{f}|{t:.4}|{}|{}", if title_shown { "T" } else { "-" }, active);
+            }
+            // Prove the rasterizer ran: dims of frame 0 + count of frames with any ink.
+            if let Ok(im) = image::open(out_dir.join("00000.png")) {
+                println!("dims|{}x{}", im.width(), im.height());
+            }
+            let ink = (0..n)
+                .filter(|f| {
+                    image::open(out_dir.join(format!("{f:05}.png")))
+                        .map(|im| im.to_rgba8().pixels().any(|p| p[3] > 0))
+                        .unwrap_or(false)
+                })
+                .count();
+            println!("ink_frames|{ink}");
         }
         Cmd::CropX { track, scaled_w, crop_w, jump } => {
             let pts: Vec<(f64, f64)> = track

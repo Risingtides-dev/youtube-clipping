@@ -21,6 +21,11 @@ rusqlite = { version = "0.31", features = ["bundled"] }  # bundled = static sqli
 # blocking (mirrors Python `requests`) + rustls so the binary scp's to any machine with no system OpenSSL.
 # multipart = Postiz mp4 upload (POST /upload, files=...).
 reqwest = { version = "0.12", default-features = false, features = ["blocking", "json", "multipart", "rustls-tls"] }
+# caption render (Pillow → pure Rust): ab_glyph rasterizes TTF glyphs, image writes the RGBA PNG
+# frame sequence ffmpeg `overlay` composites. Keeps the single-binary goal — no Python/Pillow on
+# target machines. png-only keeps image lean.
+ab_glyph = "0.2"
+image = { version = "0.25", default-features = false, features = ["png"] }
 
 [profile.release]
 lto = true        # lean, fast single binary to ship to teammates
