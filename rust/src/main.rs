@@ -1,8 +1,10 @@
 //! `ycp` — YouTube clipping closed-loop ops (Rust port, in progress).
 //! The Python in ../src/ycp stays the live system until this reaches parity.
+mod brief;
 mod config;
 mod db;
 mod optimize;
+mod scoreboard;
 mod scoring;
 mod util;
 
@@ -25,7 +27,19 @@ enum Cmd {
     /// Clip counts by status + total views (reads the same data/clips.db).
     Status,
     /// Deterministic scoring rollup — top creators by virality (cross-checks scoring.py).
-    Scoreboard,
+    Scoring,
+    /// Gamified Race-to-$15K scoreboard markdown (cross-checks scoreboard.py).
+    Scoreboard {
+        /// Fixed as-of date for reproducible diffing against Python.
+        #[arg(long, default_value = "AOD")]
+        as_of: String,
+    },
+    /// Weekly Double-Down Brief markdown (cross-checks brief.py).
+    Brief {
+        /// Fixed week label for reproducible diffing against Python.
+        #[arg(long, default_value = "WK")]
+        week: String,
+    },
     /// Learned source weights + creative preferences (cross-checks optimize.py).
     Optimize,
 }
@@ -40,10 +54,18 @@ fn main() -> Result<()> {
         }
         Cmd::Status => {
             let clips = db::clips_with_latest_metrics(&conn)?;
-            let posted = clips.iter().filter(|c| c.status.as_deref() == Some("posted")).count();
+            let posted = clips
+                .iter()
+                .filter(|c| c.status.as_deref() == Some("posted"))
+                .count();
             let views: i64 = clips.iter().map(|c| c.views).sum();
             println!("ycp (rust) · {}", root.display());
-            println!("clips: {} total · {} posted · {} views", clips.len(), posted, views);
+            println!(
+                "clips: {} total · {} posted · {} views",
+                clips.len(),
+                posted,
+                views
+            );
             let mut by: BTreeMap<String, usize> = BTreeMap::new();
             for c in &clips {
                 *by.entry(c.status.clone().unwrap_or_default()).or_default() += 1;
@@ -52,18 +74,33 @@ fn main() -> Result<()> {
                 println!("  {status:<12} {n}");
             }
         }
-        Cmd::Scoreboard => {
+        Cmd::Scoring => {
             let settings = config::load_settings(&root)?;
             let cfg = scoring::ScoreCfg::from_settings(&settings);
             let clips = db::clips_with_latest_metrics(&conn)?;
             let a = scoring::analyze(&clips, &cfg);
-            println!("scored {} clips · top creators by virality:", a.scored.len());
+            println!(
+                "scored {} clips · top creators by virality:",
+                a.scored.len()
+            );
             for r in a.by_creator.iter().take(5) {
                 println!(
                     "  {:<26} score {:>5.1} · {:>9.0} views · n={}",
                     r.key, r.avg_score, r.avg_views, r.n
                 );
             }
+        }
+        Cmd::Scoreboard { as_of } => {
+            let clips = db::clips_with_latest_metrics(&conn)?;
+            print!("{}", scoreboard::build(&clips, &as_of));
+        }
+        Cmd::Brief { week } => {
+            let settings = config::load_settings(&root)?;
+            let cfg = scoring::ScoreCfg::from_settings(&settings);
+            let top_n = settings["brief"]["top_n"].as_u64().unwrap_or(5) as usize;
+            let clips = db::clips_with_latest_metrics(&conn)?;
+            let a = scoring::analyze(&clips, &cfg);
+            print!("{}", brief::build(&a, clips.len(), top_n, &week));
         }
         Cmd::Optimize => {
             let settings = config::load_settings(&root)?;

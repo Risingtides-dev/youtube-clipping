@@ -24,7 +24,7 @@ cd rust && cargo build --release
 | db (schema, models, queries) | db.py | db.rs | ✅ spine done |
 | CLI skeleton | cli.py | main.rs | ✅ `init`, `status`, `scoreboard` |
 | scoring (scores, rollups, scale/kill) | scoring.py | scoring.rs | ✅ done — parity-exact |
-| scoreboard / brief (markdown) | scoreboard.py, brief.py | — | ⏳ |
+| scoreboard / brief (markdown) | scoreboard.py, brief.py | scoreboard.rs, brief.rs | ✅ done — parity-exact (byte-identical vs Python on clips.db + demo.db; tabulate "pipe" tables, decimal alignment, `%g`, comma-money all reproduced) |
 | optimize (learning weights, creative prefs) | optimize.py | optimize.rs | ✅ done — parity-exact |
 | experiment (A/B winners) | experiment.py | — | ⏳ next |
 | guardrails / srt / captions-chunking | guardrails.py, srt.py, captions.py | — | ⏳ |
