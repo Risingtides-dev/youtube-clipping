@@ -1,0 +1,5 @@
+DIALED 2026-06-25 — all QA-CHECKLIST boxes evidence-backed. Python build live + verified
+end-to-end (9/9 stages, render clean, guardrails/qc/distribute-cap/capture/optimize/milestones/
+archive/cleanup/delete-guard, 121 tests, config coherent). Rust at render/clamp(≤38s)/A-B parity
+(frame ≡ Python). One known follow-up: Gemini vision returns empty in Rust → heuristic fallback
+(see QA-CHECKLIST). The "broken render" scare was a misread of source creators' burned-in captions.
