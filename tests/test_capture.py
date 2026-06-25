@@ -10,7 +10,7 @@ def test_capture_public_snapshots_posted_clips(tmp_path, monkeypatch):
     # one posted clip with a URL (captured), one without a URL (ignored)
     db.insert_clip({"clip_id": "c1", "channel": "ch", "platform": "youtube", "lane": "owned",
                     "fmt": "x", "hook_type": "q", "length_sec": 30,
-                    "status": "posted", "post_url": "https://x.com/c1"}, dbp)
+                    "status": "posted", "post_url": "https://www.youtube.com/watch?v=abc123"}, dbp)
     db.insert_clip({"clip_id": "c2", "channel": "ch", "platform": "youtube", "lane": "owned",
                     "fmt": "x", "hook_type": "q", "length_sec": 30,
                     "status": "posted"}, dbp)
@@ -30,7 +30,7 @@ def test_capture_public_skips_when_no_views(tmp_path, monkeypatch):
     db.init_db(dbp)
     db.insert_clip({"clip_id": "c1", "channel": "ch", "platform": "youtube", "lane": "owned",
                     "fmt": "x", "hook_type": "q", "length_sec": 30,
-                    "status": "posted", "post_url": "https://x.com/c1"}, dbp)
+                    "status": "posted", "post_url": "https://www.youtube.com/watch?v=abc123"}, dbp)
 
     monkeypatch.setattr(capture, "_ytdlp_views", lambda url: None)  # fetch failed
     n = capture.capture_public(dbp)

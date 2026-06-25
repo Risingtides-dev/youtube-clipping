@@ -70,12 +70,15 @@ def hashtags_for(channel: str | None) -> list[str]:
     return tags.get(channel or "") or tags.get("default") or ["#shorts"]
 
 
+def title_for(clip: dict[str, Any]) -> str:
+    """The clip's hook — used as the YouTube video title (also burned on the video)."""
+    return clip.get("post_title") or f"{clip.get('source_creator', '')} — clip".strip(" —")
+
+
 def caption_for(clip: dict[str, Any]) -> str:
-    """Post caption for a clip: the hook title + the channel's hashtags. The burned hook
-    is the on-screen title; the tags ride in the post description for discovery."""
-    title = clip.get("post_title") or f"{clip.get('source_creator', '')} — clip".strip(" —")
+    """Post description: the hook + the channel's hashtags (for discovery)."""
     tags = " ".join(hashtags_for(clip.get("channel")))
-    return f"{title}\n\n{tags}".strip()
+    return f"{title_for(clip)}\n\n{tags}".strip()
 
 
 def assign_slots(n: int, times: list[str], tz: str, start: datetime) -> list[str]:
@@ -98,6 +101,17 @@ def assign_slots(n: int, times: list[str], tz: str, start: datetime) -> list[str
                     break
         day += timedelta(days=1)
     return out
+
+
+def _post_id(out: Any) -> str:
+    """Pull the Postiz post id from a POST /posts response ([{postId,...}] or a dict).
+    The video id isn't here — Postiz publishes to YouTube async; resolve it later via
+    GET /posts (releaseId). See capture.resolve_published()."""
+    if isinstance(out, list) and out:
+        out = out[0]
+    if isinstance(out, dict):
+        return str(out.get("postId") or out.get("id") or "posted")
+    return "posted"
 
 
 class Adapter(Protocol):
@@ -162,20 +176,28 @@ class PostizAdapter:
         up.raise_for_status()
         media = up.json()
         caption = meta.get("caption", "")
+        # Postiz public-API schema (verified against POST /posts 400 responses): shortLink +
+        # tags are required at the top level; YouTube settings need `type` = the privacy
+        # (public|private|unlisted) alongside `__type` (the platform) and `title`.
         body = {
             "type": self.schedule,
             "date": meta.get("date") or db.now(),
+            "shortLink": False,
+            "tags": [],
             "posts": [{
                 "integration": {"id": integration_id},
                 "value": [{"content": caption,
                            "image": [{"id": media.get("id"), "path": media.get("path")}]}],
-                "settings": {"__type": meta.get("platform") or "youtube", "title": caption[:100]},
+                "settings": {
+                    "__type": meta.get("platform") or "youtube",
+                    "title": (meta.get("title") or caption[:100])[:100],
+                    "type": meta.get("privacy") or "public",
+                },
             }],
         }
         resp = requests.post(f"{self.api_url}/posts", headers=headers, json=body, timeout=60)
         resp.raise_for_status()
-        out = resp.json()
-        return str(out.get("id") or out.get("postId") or "posted")
+        return _post_id(resp.json())
 
 
 def _resolve_outbox(cfg: dict) -> Path:
@@ -246,6 +268,7 @@ def run(db_path: Any = None) -> dict[str, Any]:
         try:
             dest = adapter.deliver(Path(clip.get("post_url") or ""), {
                 "clip_id": clip["clip_id"], "caption": caption_for(clip),
+                "title": title_for(clip),
                 "channel": clip.get("channel"), "platform": clip.get("platform"),
                 "date": slots[i] if i < len(slots) else None,
             })
@@ -254,7 +277,7 @@ def run(db_path: Any = None) -> dict[str, Any]:
             failed += 1
             continue
         db.set_clip_status(clip["clip_id"], "posted", db_path=db_path,
-                           post_url=dest, posted_at=db.now())
+                           post_id=dest, posted_at=db.now())
         delivered += 1
     return {"enabled": True, "delivered": delivered, "blocked": blocked,
             "parked": parked, "failed": failed}

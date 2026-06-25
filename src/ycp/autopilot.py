@@ -182,8 +182,14 @@ def run(
     _stage("qc", _qc, results, log)
 
     # 4 ─ CAPTURE ────────────────────────────────────────────────────────────────
-    _stage("capture", lambda: f"{capture_mod.capture_public(db_path=db_path)} clips snapshotted",
-           results, log)
+    # Resolve Postiz post_ids → YouTube URLs, snapshot public views, then pull owned
+    # retention/revenue (no-op until creds + published videos exist).
+    def _capture() -> str:
+        pub = capture_mod.capture_public(db_path=db_path)
+        full = capture_mod.capture_full_analytics(db_path=db_path)
+        return f"{pub} public-view + {full} owned-analytics snapshots"
+
+    _stage("capture", _capture, results, log)
 
     # 5 ─ BRIEF ──────────────────────────────────────────────────────────────────
     def _brief() -> str:

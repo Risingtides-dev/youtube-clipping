@@ -182,6 +182,7 @@ def run(url: str, max_clips: int = 6, lane: str = "owned",
                 "source_creator": source_creator, "channel": channel,
                 "platform": "youtube", "lane": lane, "fmt": "auto-clip",
                 "hook_type": "tbd", "length_sec": int(cand.duration), "status": "pending_qc",
+                "post_title": clip_title,  # the hook — becomes the YouTube title + post caption
                 "post_url": str(out),  # local preview path until posted
             }, db_path)
             created.append({"clip_id": clip_id, "file": str(out),
