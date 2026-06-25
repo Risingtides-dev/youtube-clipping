@@ -56,3 +56,15 @@ def test_empty_input_safe():
     assert scoring.rollup(empty, scoring.ACTION_DIMS).empty
     scale, kill = scoring.scale_and_kill(scoring.rollup(empty, ["fmt"]))
     assert scale.empty and kill.empty
+
+
+def test_post_hour_uses_channel_local_time():
+    # 02:51 UTC → 22:51 prior day in America/New_York (EDT, -4) → hour 22.
+    df = pd.DataFrame([{"clip_id": "a", "posted_at": "2026-06-25T02:51:00Z",
+                        "views": 1, "length_sec": 30}])
+    assert int(scoring.post_hour(df).iloc[0]) == 22
+
+
+def test_post_hour_nan_when_unposted():
+    df = pd.DataFrame([{"clip_id": "a", "posted_at": None, "views": 1, "length_sec": 30}])
+    assert scoring.post_hour(df).isna().iloc[0]

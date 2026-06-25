@@ -59,6 +59,7 @@ def _facts(analysis: dict) -> str:
         _rollup_lines("By hook style", analysis.get("by_hook"), "hook_type"),
         _rollup_lines("By length", analysis.get("by_length"), "length_bucket"),
         _rollup_lines("By format", analysis.get("by_format"), "fmt"),
+        _rollup_lines("By posting hour (channel-local)", analysis.get("by_hour"), "post_hour"),
         _retention_line(analysis.get("scored")),
     ])
 

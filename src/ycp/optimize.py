@@ -24,7 +24,8 @@ from . import db, scoring
 from .config import ROOT, settings
 
 WEIGHTS_PATH = ROOT / "data" / "learned-weights.json"      # {creator: source multiplier}
-CREATIVE_PATH = ROOT / "data" / "learned-creative.json"    # winning hook styles + length
+CREATIVE_PATH = ROOT / "data" / "learned-creative.json"    # winning hook styles + length (inferred)
+AB_WINNERS_PATH = ROOT / "data" / "ab-winners.json"        # hook styles PROVEN by A/B tests
 LOG_PATH = ROOT / "IMPROVEMENT-LOG.md"
 
 # Hook labels that aren't a learnable creative style (skip them when picking winners).
@@ -103,8 +104,14 @@ def _load_creative() -> dict[str, Any]:
 
 
 def preferred_hooks() -> list[str]:
-    """Hook styles the loop has learned are winning (the hook agent biases toward these)."""
-    return _load_creative().get("prefer_hooks") or []
+    """Hook styles the loop biases toward — A/B-PROVEN winners first, then inferred winners
+    from the scoreboard. The hook agent nudges generation toward these."""
+    inferred = _load_creative().get("prefer_hooks") or []
+    try:
+        proven = json.loads(AB_WINNERS_PATH.read_text())
+    except (OSError, ValueError):
+        proven = []
+    return list(dict.fromkeys([*proven, *inferred]))
 
 
 def preferred_length() -> str | None:

@@ -209,3 +209,25 @@ def best_hook(moment: str, angle: str = "", n: int = 6, max_words: int = 10,
               model: str | None = None) -> str:
     """Back-compat: just the hook text. New code should use `best()` to also get the type."""
     return best(moment, angle, n, max_words, model)["text"]
+
+
+def _trim(text: str, max_words: int) -> str:
+    words = text.split()
+    return " ".join(words[:max_words]) + ("…" if len(words) > max_words else "")
+
+
+def variants(moment: str, angle: str = "", k: int = 3, max_words: int = 10,
+             model: str | None = None, prefer_types: list[str] | None = None) -> list[dict]:
+    """Up to K hook variants in DIFFERENT styles for A/B testing a hero clip — the best hook
+    of each distinct type, top-k by score. Returns [{text, type}]. Degrades to 1 (or the
+    heuristic) when the model can't produce diverse angles, so non-hero clips still work."""
+    cands = [c for c in generate_candidates(moment, max(k * 2, 6), angle, model,
+                                            prefer_types=prefer_types) if looks_safe(c["text"])]
+    if not cands:
+        fb = enhance.pick_title(moment, max_words=max_words)
+        return [{"text": fb if looks_safe(fb) else "", "type": "heuristic"}]
+    best_by_type: dict[str, dict] = {}
+    for c in sorted(cands, key=lambda c: _combined_score(c, angle, prefer_types), reverse=True):
+        best_by_type.setdefault(c.get("type") or "uncategorized", c)
+    return [{"text": _trim(c["text"], max_words), "type": c.get("type") or "uncategorized"}
+            for c in list(best_by_type.values())[:k]]

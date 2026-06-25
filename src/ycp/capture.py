@@ -68,13 +68,17 @@ def resolve_published(db_path: Path | None = None) -> int:
     except (requests.RequestException, ValueError):
         return 0
     posts = data if isinstance(data, list) else (data.get("posts") or data.get("data") or [])
-    url_by_id = {p.get("id"): p.get("releaseURL") for p in posts
-                 if p.get("state") == "PUBLISHED" and p.get("releaseURL")}
+    # Keep the REAL publish time (publishDate), not our schedule slot — so timing analysis
+    # ("did a great clip ship at the wrong hour?") is grounded in when it actually went live.
+    info_by_id = {p.get("id"): (p.get("releaseURL"), p.get("publishDate")) for p in posts
+                  if p.get("state") == "PUBLISHED" and p.get("releaseURL")}
     n = 0
     for r in pending:
-        url = url_by_id.get(r["post_id"])
-        if url:
-            db.set_clip_status(r["clip_id"], "posted", db_path=db_path, post_url=url)
+        info = info_by_id.get(r["post_id"])
+        if info:
+            url, published = info
+            db.set_clip_status(r["clip_id"], "posted", db_path=db_path,
+                               post_url=url, posted_at=published or db.now())
             n += 1
     return n
 

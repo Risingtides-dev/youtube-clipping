@@ -76,6 +76,17 @@ def test_prefer_types_nudge_breaks_the_tie(monkeypatch):
     assert hooks.best("t", prefer_types=["Pattern Interrupt"])["type"] == "Pattern Interrupt"
 
 
+def test_variants_returns_distinct_styles(monkeypatch):
+    monkeypatch.setattr(hooks, "generate_candidates", lambda *a, **k: [
+        {"text": "contrarian take here", "type": "Contrarian", "fit": 0.9},
+        {"text": "another contrarian one", "type": "Contrarian", "fit": 0.8},
+        {"text": "curiosity gap hook", "type": "Curiosity Gap", "fit": 0.85},
+        {"text": "pattern interrupt line", "type": "Pattern Interrupt", "fit": 0.7}])
+    v = hooks.variants("moment", k=3)
+    types = [x["type"] for x in v]
+    assert len(v) == 3 and len(set(types)) == 3   # 3 DIFFERENT angles for the A/B test
+
+
 def test_coerce_accepts_string_and_dict():
     assert hooks._coerce_candidate("Hook text")["text"] == "Hook text"
     assert hooks._coerce_candidate({"text": "X", "type": "Reframe", "fit": "0.8"})["fit"] == 0.8

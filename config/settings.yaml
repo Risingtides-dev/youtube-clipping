@@ -134,3 +134,14 @@ optimize:
   boost: 1.5
   suppress: 0.4
   floor: 0.1
+
+# --- A/B hook testing (hero clips) -------------------------------------------
+# When a moment scores >= hero_score, cut `variants` versions of the SAME clip with
+# different hook ANGLES, post them as one experiment, and let real views crown the winner —
+# whose hook style is then fed back into generation. Conservative so only the strongest
+# moments get multiple variants (no near-duplicate spam). experiment.resolve() reads min_views.
+ab:
+  enabled: true
+  hero_score: 0.9     # 0-1 predicted moment score to qualify as a hero worth testing
+  variants: 3         # distinct-style hooks to test on a hero
+  min_views: 1000     # views a variant needs before we trust the A/B winner

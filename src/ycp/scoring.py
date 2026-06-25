@@ -35,8 +35,19 @@ def length_bucket(seconds: float | int | None) -> str:
     return f"{buckets[-1]}s+"
 
 
+def post_hour(df: pd.DataFrame) -> pd.Series:
+    """Hour-of-day (0-23) each clip was PUBLISHED, in the channel's local tz — so timing
+    patterns ('best clip, wrong hour') surface when we zoom out over weeks. NaN if unposted."""
+    tz = settings().get("distribution", {}).get("postiz", {}).get("timezone", "UTC")
+    posted = pd.to_datetime(df.get("posted_at"), errors="coerce", utc=True)
+    try:
+        return posted.dt.tz_convert(tz).dt.hour
+    except (TypeError, AttributeError):
+        return pd.Series(index=df.index, dtype="float64")
+
+
 def add_derived(df: pd.DataFrame) -> pd.DataFrame:
-    """Add revenue_per_1k and length_bucket. Returns a new frame (immutable in)."""
+    """Add revenue_per_1k, length_bucket, post_hour. Returns a new frame (immutable in)."""
     if df.empty:
         return df.copy()
     out = df.copy()
@@ -46,6 +57,7 @@ def add_derived(df: pd.DataFrame) -> pd.DataFrame:
         out["revenue_per_1k"] = np.where(views > 0, revenue / (views / 1000.0), 0.0)
     out["retention_pct"] = out.get("retention_pct", pd.Series(index=out.index)).fillna(0)
     out["length_bucket"] = out["length_sec"].apply(length_bucket)
+    out["post_hour"] = post_hour(out)
     return out
 
 
@@ -123,6 +135,8 @@ def analyze(df: pd.DataFrame) -> dict:
         "by_hook": rollup(scored, ["hook_type"]),
         "by_length": rollup(scored, ["length_bucket"]),
         "by_platform": rollup(scored, ["platform"]),
+        "by_hour": rollup(scored[scored["post_hour"].notna()], ["post_hour"])
+        if "post_hour" in scored else rollup(scored, ["post_hour"]),
         "scale": scale,
         "kill": kill,
     }

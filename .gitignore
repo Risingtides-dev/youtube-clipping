@@ -1,6 +1,8 @@
 .env
 client_secret*.json
 data/*.db
+data/*.json
+data/logs/
 data/oauth/
 __pycache__/
 *.pyc

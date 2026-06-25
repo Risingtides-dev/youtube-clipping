@@ -221,10 +221,12 @@ def run(
     # The actuator: turn the scoreboard's scale/kill verdicts into source weights for
     # the NEXT cycle (double down on winners, starve losers) + journal it to IMPROVEMENT-LOG.md.
     def _optimize() -> str:
-        from . import optimize
+        from . import experiment, optimize
         r = optimize.run(db_path)
+        ab = experiment.resolve(db_path)
+        ab_note = f" · {len(ab)} A/B winner(s) crowned" if ab else ""
         return (f"learned from {r['clips']} clips → +{len(r['boosted'])} boosted / "
-                f"-{len(r['suppressed'])} starved (→ IMPROVEMENT-LOG.md)")
+                f"-{len(r['suppressed'])} starved{ab_note} (→ IMPROVEMENT-LOG.md)")
 
     _stage("optimize", _optimize, results, log)
 

@@ -103,6 +103,17 @@ def _retention_section(scored: pd.DataFrame) -> str:
             f"worst: **{g.index[-1]}** ({g.iloc[-1]:.0f}%) → make more of the former.")
 
 
+def _timing_section(by_hour: pd.DataFrame) -> str:
+    """Which posting hours over-index — so a great clip at the wrong time gets caught."""
+    valid = by_hour.dropna(subset=["post_hour"]) if by_hour is not None else None
+    if valid is None or valid.empty:
+        return ("Not enough posts yet to read timing — publish times are being logged; "
+                "the pattern surfaces as volume builds over weeks.")
+    return "Best posting hours so far (channel-local): " + ", ".join(
+        f"**{int(r['post_hour']):02d}:00** (score {r['avg_score']}, {int(r['n'])} clips)"
+        for _, r in valid.head(3).iterrows())
+
+
 def build(df: pd.DataFrame, week_start: str | None = None) -> str:
     """Return the full Double-Down Brief as markdown (deterministic)."""
     top_n = settings()["brief"]["top_n"]
@@ -128,6 +139,9 @@ _Generated from {n_clips} clips with metrics. Virality score 0–100; revenue in
 
 ## 🎯 Hook health (retention)
 {_retention_section(a["scored"])}
+
+## ⏰ Timing
+{_timing_section(a["by_hour"])}
 
 ---
 
