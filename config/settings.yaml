@@ -155,5 +155,7 @@ ab:
 #   dest: "~/Library/CloudStorage/GoogleDrive-.../My Drive/Phoenix Protocol"  → Drive for Desktop folder
 #   dest: "phoenix:Phoenix Protocol/clips"  → rclone remote (recommended; `rclone config` once)
 archive:
-  dest: ""
-  subfolder_by_channel: true
+  # Google Drive Desktop mount → clips auto-sync to the cloud "Phoenix Protocol" library
+  # (no rclone/OAuth needed). The folder IS the channel, so no per-channel subfolder yet.
+  dest: "~/Library/CloudStorage/GoogleDrive-ec@risingtidesent.com/My Drive/Phoenix Protocol"
+  subfolder_by_channel: false
