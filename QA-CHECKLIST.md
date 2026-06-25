@@ -27,7 +27,11 @@ The definition of "flawless" for this build. The Ralph loop works this top-to-bo
       windowed source cut a **0.31s stub** → added `MIN_CLIP_SEC=12` floor + clamp to real footage
       in `_vision_candidates` (`clip.py`); (b) heuristic fallback used `max_len=60` → produced a
       **56.8s clip** → now caps at `MAX_CLIP_SEC=38`. New unit test `test_vision_candidates_clamp_and_floor`; `pytest -q` → 122 green.
-- [ ] **guardrails**: a clip with music / non-`auto-clip` fmt / avoid-list creator is REJECTED
+- [x] **guardrails**: a clip with music / non-`auto-clip` fmt / avoid-list creator is REJECTED
+      — Exercised the real fns: `qc_decision({has_music:True})` → reject *"copyrighted-music signal"*;
+      title *"…Official Music Video"* → reject *"title flag"*; `fmt:"raw-reupload"` → reject
+      *"not transformed"*; clean `auto-clip` → **approve**. `creator_allowed("Joe Rogan")`/Tate → False,
+      Jubilee → True; `filter_creators` drops Andrew Tate, keeps Ramit.
 - [ ] **qc**: auto-approves a transformed clip, rejects a bad one
 - [ ] **distribute** (sandbox/mock, NO live post): posts only top `max_per_run`, marks the rest
       `skipped`, parks unconnected channels
