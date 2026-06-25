@@ -1,8 +1,43 @@
 //! Owned ffmpeg enhancements — parity port of `src/ycp/enhance.py`.
 //!
-//! Only `pick_title` (the zero-dependency hook heuristic) is ported so far — it's the
-//! fallback `hooks::best` uses when DeepSeek is unavailable. The native ffmpeg builders
-//! (title/CTA overlay, gameplay vstack) land with the "native pipeline" row.
+//! `pick_title` is the zero-dependency hook heuristic `hooks::best` falls back to.
+//! `stack_gameplay` (split-screen retention) shells out to ffmpeg, mirroring `vstack_cmd`.
+
+use std::path::{Path, PathBuf};
+use std::process::Command;
+
+use anyhow::{bail, Result};
+
+/// ffmpeg args to stack `clip` over looping `gameplay` (split-screen). Mirrors `vstack_cmd`:
+/// gameplay loops to the clip's length, clip audio kept, gameplay audio dropped. Pure builder.
+pub fn vstack_cmd(clip: &Path, gameplay: &Path, out: &Path) -> Vec<String> {
+    let (top_h, bottom_h, width) = (1152, 768, 1080);
+    let fc = format!(
+        "[0:v]scale={width}:{top_h}:force_original_aspect_ratio=increase,crop={width}:{top_h}[top];\
+         [1:v]scale={width}:{bottom_h}:force_original_aspect_ratio=increase,crop={width}:{bottom_h},setsar=1[bot];\
+         [top][bot]vstack=inputs=2[v]"
+    );
+    vec![
+        "-y".into(), "-i".into(), clip.display().to_string(),
+        "-stream_loop".into(), "-1".into(), "-i".into(), gameplay.display().to_string(),
+        "-filter_complex".into(), fc, "-map".into(), "[v]".into(), "-map".into(), "0:a?".into(),
+        "-c:v".into(), "libx264".into(), "-c:a".into(), "aac".into(),
+        "-preset".into(), "veryfast".into(), "-shortest".into(), out.display().to_string(),
+    ]
+}
+
+/// Stack `clip` over a looping `gameplay` file (split-screen retention). Mirrors `stack_gameplay`.
+pub fn stack_gameplay(clip: &Path, gameplay: &Path, out: &Path) -> Result<PathBuf> {
+    if !gameplay.exists() {
+        bail!("gameplay loop not found: {}", gameplay.display());
+    }
+    let res = Command::new("ffmpeg").args(vstack_cmd(clip, gameplay, out)).output()?;
+    if !res.status.success() {
+        let err = String::from_utf8_lossy(&res.stderr);
+        bail!("gameplay vstack failed: {}", err[err.len().saturating_sub(400)..].trim());
+    }
+    Ok(out.to_path_buf())
+}
 
 /// Heuristic hook title from the transcript: first question, else the longest line.
 ///

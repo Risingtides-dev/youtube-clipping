@@ -267,3 +267,92 @@ pub fn insert_metric(conn: &Connection, m: &MetricRow) -> Result<()> {
     )?;
     Ok(())
 }
+
+/// A freshly-produced clip awaiting QC (mirrors the db.py `insert_clip` row dict). Unset
+/// optional fields default to None just like the Python `COALESCE`/dict-defaults.
+#[derive(Debug, Clone, Default)]
+pub struct NewClip {
+    pub clip_id: String,
+    pub source_video_id: Option<String>,
+    pub source_creator: Option<String>,
+    pub channel: String,
+    pub platform: String,
+    pub lane: String,
+    pub fmt: Option<String>,
+    pub hook_type: Option<String>,
+    pub length_sec: Option<i64>,
+    pub post_title: Option<String>,
+    pub experiment_id: Option<String>,
+    pub variant: Option<String>,
+    pub post_url: Option<String>,
+}
+
+/// Register a new clip (mirrors db.py `insert_clip`): status defaults to 'pending_qc',
+/// ON CONFLICT(clip_id) DO NOTHING so a re-run is idempotent.
+pub fn insert_clip(conn: &Connection, c: &NewClip) -> Result<()> {
+    conn.execute(
+        "INSERT INTO clips
+             (clip_id, source_video_id, source_creator, channel, platform, lane, fmt,
+              hook_type, length_sec, status, post_title, experiment_id, variant, post_url,
+              posted_at, slack_ts, created_at)
+           VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, 'pending_qc', ?10, ?11, ?12, ?13,
+                   NULL, NULL, ?14)
+           ON CONFLICT(clip_id) DO NOTHING",
+        params![
+            c.clip_id, c.source_video_id, c.source_creator, c.channel, c.platform, c.lane,
+            c.fmt, c.hook_type, c.length_sec, c.post_title, c.experiment_id, c.variant,
+            c.post_url, now()
+        ],
+    )?;
+    Ok(())
+}
+
+/// Persist a generated brief (mirrors db.py `save_brief`).
+pub fn save_brief(conn: &Connection, week_start: &str, content: &str) -> Result<()> {
+    conn.execute(
+        "INSERT INTO briefs (week_start, content, created_at) VALUES (?1, ?2, ?3)",
+        params![week_start, content, now()],
+    )?;
+    Ok(())
+}
+
+/// Source_video_ids that already have a clip — lets autopilot skip re-clipping (mirrors
+/// db.py `clipped_source_ids`).
+pub fn clipped_source_ids(conn: &Connection) -> Result<std::collections::HashSet<String>> {
+    let mut stmt =
+        conn.prepare("SELECT DISTINCT source_video_id FROM clips WHERE source_video_id IS NOT NULL")?;
+    let ids = stmt
+        .query_map([], |r| r.get::<_, String>(0))?
+        .collect::<rusqlite::Result<std::collections::HashSet<_>>>()?;
+    Ok(ids)
+}
+
+/// Previously-sourced videos, hottest first (mirrors db.py `source_queue`). Used by
+/// autopilot `--skip-source` to reuse the queue without re-hitting the network.
+pub fn source_queue(conn: &Connection, limit: Option<i64>) -> Result<Vec<SourceVideoRow>> {
+    let mut q = String::from(
+        "SELECT video_id, creator, channel_id, title, url, views, published_at, view_velocity, \
+         lane, status FROM source_videos ORDER BY view_velocity DESC",
+    );
+    if let Some(l) = limit {
+        q.push_str(&format!(" LIMIT {l}"));
+    }
+    let mut stmt = conn.prepare(&q)?;
+    let rows = stmt
+        .query_map([], |r| {
+            Ok(SourceVideoRow {
+                video_id: r.get(0)?,
+                creator: r.get(1)?,
+                channel_id: r.get(2)?,
+                title: r.get(3)?,
+                url: r.get(4)?,
+                views: r.get::<_, Option<i64>>(5)?.unwrap_or(0),
+                published_at: r.get(6)?,
+                view_velocity: r.get::<_, Option<f64>>(7)?.unwrap_or(0.0),
+                lane: r.get(8)?,
+                status: r.get(9)?,
+            })
+        })?
+        .collect::<rusqlite::Result<Vec<_>>>()?;
+    Ok(rows)
+}

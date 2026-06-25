@@ -1,15 +1,15 @@
-//! Hybrid clip pipeline — the free, uncapped volume engine. Parity port of the PURE +
-//! native-step half of `src/ycp/clip.py`.
+//! Hybrid clip pipeline — the free, uncapped volume engine. Parity port of `src/ycp/clip.py`.
 //!
 //! `score_candidate`, `plan_clips`, `window_text`, `Candidate` are pure and cross-checked
 //! byte-for-byte against the Python (`ycp plan` / `ycp score-cand`). `download` + `cut_vertical`
 //! shell out to yt-dlp/ffmpeg (→ `reframe`) exactly as the Python does.
 //!
-//! The full `run()` orchestrator (vision moment-picking, A/B hook sets, Pillow caption burn,
-//! gameplay stacking, archive) is intentionally deferred to the autopilot row: it depends on
-//! the unported "captions render" row + vision.py + enhance.stack_gameplay. Same staging the
-//! capture/distribute ports used — pure cores first, orchestration last.
-#![allow(dead_code)] // download/cut_vertical wired by the autopilot row
+//! `run()` is the full orchestrator (vision moment-picking → cut → A/B hook sets → caption burn
+//! → gameplay stack → archive → register pending_qc). It mirrors clip.py `run` step-for-step;
+//! the native shell-outs (yt-dlp/ffmpeg/whisper) + live API calls (DeepSeek hooks, Gemini vision)
+//! are not byte-diffable, but the structure, clip-id hashing (sha1[:8]), windowing and DB writes
+//! are exact. Wired into `autopilot`.
+#![allow(dead_code)] // some helpers/fields are parity-carried, exercised only via autopilot
 
 use std::collections::HashSet;
 use std::path::{Path, PathBuf};
@@ -18,10 +18,9 @@ use std::sync::OnceLock;
 
 use anyhow::{bail, Result};
 
-use crate::config;
-use crate::reframe;
-use crate::srt::Segment;
+use crate::srt::{slice_and_shift, Segment};
 use crate::util::round_to;
+use crate::{archive, captions, config, db, enhance, hooks, optimize, reframe, transcribe, vision};
 
 pub const MAX_CLIP_SEC: f64 = 45.0; // hard cap on a clip window
 
@@ -181,6 +180,227 @@ pub fn cut_vertical(root: &Path, video: &Path, cand: &Candidate, out_path: &Path
 fn fmt_secs(x: f64) -> String {
     let s = format!("{x}");
     if s.contains('e') || s.contains('E') { format!("{x:.3}") } else { s }
+}
+
+// ── full pipeline (orchestrator) ─────────────────────────────────────────────
+
+fn clips_dir(root: &Path) -> PathBuf {
+    root.join("data").join("clips")
+}
+
+/// `hashlib.sha1(url.encode()).hexdigest()[:8]` — byte-identical clip-id prefix.
+fn sha1_hex8(url: &str) -> String {
+    use sha1::{Digest, Sha1};
+    let digest = Sha1::digest(url.as_bytes());
+    let mut hex = String::with_capacity(8);
+    for b in digest.iter().take(4) {
+        hex.push_str(&format!("{b:02x}"));
+    }
+    hex
+}
+
+/// Per-call clipping options (mirrors the keyword args of clip.py `run`). `hook_cta` is carried
+/// for signature parity but — as in Python — unused by the caption-burn path.
+pub struct RunOpts<'a> {
+    pub max_clips: usize,
+    pub lane: &'a str,
+    pub source_creator: &'a str,
+    pub channel: &'a str,
+    pub hook_cta: bool,
+    pub title: Option<&'a str>,
+    pub gameplay: Option<&'a Path>,
+    pub source_video_id: Option<&'a str>,
+    pub angle: &'a str,
+    pub window_sec: Option<i64>,
+    pub captions_on: bool,
+}
+
+impl Default for RunOpts<'_> {
+    fn default() -> Self {
+        RunOpts {
+            max_clips: 6,
+            lane: "owned",
+            source_creator: "unknown",
+            channel: "clips",
+            hook_cta: true,
+            title: None,
+            gameplay: None,
+            source_video_id: None,
+            angle: "",
+            window_sec: None,
+            captions_on: true,
+        }
+    }
+}
+
+/// A produced clip (mirrors the dicts clip.py `run` returns; autopilot reads only the count).
+pub struct Created {
+    pub clip_id: String,
+    pub file: String,
+    pub score: f64,
+    pub len: f64,
+    pub preview: String,
+}
+
+/// Full pipeline: url → ranked vertical clips with hook title + captions, registered for QC.
+/// Mirrors clip.py `run`. The temp workdir is removed on the way out (best-effort), like the
+/// Python `TemporaryDirectory`.
+pub fn run(conn: &rusqlite::Connection, root: &Path, url: &str, opts: &RunOpts) -> Result<Vec<Created>> {
+    let settings = config::load_settings(root)?;
+    let mut created: Vec<Created> = Vec::new();
+    let vid_hash = sha1_hex8(url);
+    let workdir = std::env::temp_dir().join(format!("ycp-clip-{}-{vid_hash}", std::process::id()));
+    std::fs::create_dir_all(&workdir)?;
+
+    let body = run_inner(conn, root, url, opts, &settings, &vid_hash, &workdir, &mut created);
+    let _ = std::fs::remove_dir_all(&workdir);
+    body?;
+    Ok(created)
+}
+
+#[allow(clippy::too_many_arguments)]
+fn run_inner(
+    conn: &rusqlite::Connection,
+    root: &Path,
+    url: &str,
+    opts: &RunOpts,
+    settings: &serde_yaml::Value,
+    vid_hash: &str,
+    workdir: &Path,
+    created: &mut Vec<Created>,
+) -> Result<()> {
+    let video = download(url, workdir, opts.window_sec)?;
+    let segments = transcribe::transcribe(root, &video, workdir)?;
+
+    // Gemini picks moments by watching the footage; else the transcript heuristic.
+    let moments = vision::rank_moments(root, &video, opts.max_clips, settings);
+    let candidates: Vec<Candidate> = if !moments.is_empty() {
+        println!("  · Gemini vision picked {} moment(s)", moments.len());
+        moments
+            .iter()
+            .map(|m| {
+                let end = m.end.min(m.start + MAX_CLIP_SEC);
+                Candidate::new(m.start, end, window_text(&segments, m.start, end), m.score)
+            })
+            .collect()
+    } else {
+        plan_clips(&segments, 15.0, 60.0, Some(opts.max_clips))
+    };
+
+    let prefer = optimize::preferred_hooks(&optimize::Paths::new(root));
+    let ab = &settings["ab"];
+    let ab_enabled = ab["enabled"].as_bool().unwrap_or(true);
+    let hero_score = ab["hero_score"].as_f64().unwrap_or(0.9);
+    let variants_k = ab["variants"].as_i64().unwrap_or(3) as usize;
+
+    for (i, cand) in candidates.iter().enumerate() {
+        let clip_id = format!("{vid_hash}-{i:02}");
+        // captions_on=false → no chunks → hook renders alone (defer to the source's captions).
+        let chunks = if opts.captions_on {
+            captions::build_chunks(
+                &slice_and_shift(&segments, cand.start, cand.end),
+                captions::MAX_WORDS,
+                captions::MIN_DWELL,
+            )
+        } else {
+            Vec::new()
+        };
+        let staged = workdir.join(format!("{clip_id}.mp4"));
+        if let Err(exc) = cut_vertical(root, &video, cand, &staged, workdir) {
+            println!("  ! skip {clip_id}: {exc}");
+            continue;
+        }
+
+        // Pick the hook set: a manual title, an A/B hero set, or a single best hook.
+        let (hook_set, exp_id): (Vec<hooks::Hook>, Option<String>) = if let Some(t) = opts.title {
+            (vec![hooks::Hook { text: t.to_string(), typ: "manual".to_string() }], None)
+        } else if ab_enabled && cand.score >= hero_score {
+            let hs = hooks::variants(root, &cand.text, opts.angle, variants_k, 10, None, &prefer);
+            let eid = if hs.len() > 1 { Some(format!("{clip_id}-ab")) } else { None };
+            (hs, eid)
+        } else {
+            (vec![hooks::best(root, &cand.text, opts.angle, 6, 10, None, &prefer)], None)
+        };
+        if exp_id.is_some() {
+            println!("  · hero moment (score {:.2}) → A/B {} hook angles", cand.score, hook_set.len());
+        }
+
+        for (vi, hook) in hook_set.iter().enumerate() {
+            let variant_id =
+                if hook_set.len() == 1 { clip_id.clone() } else { format!("{clip_id}-v{vi}") };
+            let mut cur = staged.clone();
+            match captions::burn_captions(
+                &staged,
+                &chunks,
+                &workdir.join(format!("{variant_id}_cap.mp4")),
+                workdir,
+                Some(&hook.text),
+                captions::FPS,
+                captions::SIZE,
+                None,
+                Some(settings),
+            ) {
+                Ok(p) => cur = p,
+                Err(exc) => println!("  · captions failed ({exc}); shipping plain clip"),
+            }
+            if let Some(gp) = opts.gameplay {
+                cur = enhance::stack_gameplay(&cur, gp, &workdir.join(format!("{variant_id}_gp.mp4")))?;
+            }
+            let out = clips_dir(root).join(format!("{variant_id}.mp4"));
+            if let Some(p) = out.parent() {
+                std::fs::create_dir_all(p).ok();
+            }
+            // Copy (not move) when the burn fell back to `staged`, so the shared base survives
+            // for the other variants in this A/B set.
+            if cur == staged {
+                std::fs::copy(&staged, &out)?;
+            } else {
+                std::fs::rename(&cur, &out).or_else(|_| {
+                    std::fs::copy(&cur, &out).map(|_| ()).and_then(|_| std::fs::remove_file(&cur))
+                })?;
+            }
+            db::insert_clip(
+                conn,
+                &db::NewClip {
+                    clip_id: variant_id.clone(),
+                    source_video_id: opts.source_video_id.map(String::from),
+                    source_creator: Some(opts.source_creator.to_string()),
+                    channel: opts.channel.to_string(),
+                    platform: "youtube".to_string(),
+                    lane: opts.lane.to_string(),
+                    fmt: Some("auto-clip".to_string()),
+                    hook_type: Some(hook.typ.clone()),
+                    length_sec: Some(cand.duration() as i64),
+                    post_title: Some(hook.text.clone()),
+                    experiment_id: exp_id.clone(),
+                    variant: exp_id.as_ref().map(|_| hook.typ.clone()),
+                    post_url: Some(out.display().to_string()),
+                },
+            )?;
+            created.push(Created {
+                clip_id: variant_id.clone(),
+                file: out.display().to_string(),
+                score: cand.score,
+                len: cand.duration(),
+                preview: cand.text.chars().take(80).collect(),
+            });
+            // Archive to the Phoenix Protocol drive (best-effort; never blocks posting).
+            let meta = serde_json::json!({
+                "clip_id": variant_id,
+                "channel": opts.channel,
+                "hook": hook.text,
+                "hook_type": hook.typ,
+                "source_creator": opts.source_creator,
+                "score": cand.score,
+                "length_sec": cand.duration() as i64,
+                "experiment_id": exp_id,
+            });
+            if let Some(dest) = archive::archive_clip(settings, &out, &meta) {
+                println!("  · archived → {dest}");
+            }
+        }
+    }
+    Ok(())
 }
 
 #[cfg(test)]

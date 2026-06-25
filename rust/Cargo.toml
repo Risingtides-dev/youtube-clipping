@@ -26,6 +26,7 @@ reqwest = { version = "0.12", default-features = false, features = ["blocking", 
 # target machines. png-only keeps image lean.
 ab_glyph = "0.2"
 image = { version = "0.25", default-features = false, features = ["png"] }
+sha1 = "0.10"   # clip-id = sha1(url)[:8], byte-identical to Python hashlib.sha1
 
 [profile.release]
 lto = true        # lean, fast single binary to ship to teammates

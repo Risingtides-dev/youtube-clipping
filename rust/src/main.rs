@@ -1,18 +1,21 @@
 //! `ycp` — YouTube clipping closed-loop ops (Rust port, in progress).
 //! The Python in ../src/ycp stays the live system until this reaches parity.
 mod archive;
+mod autopilot;
 mod brief;
 mod capture;
 mod captions;
 mod clip;
 mod config;
 mod db;
+mod diagnose;
 mod distribute;
 mod enhance;
 mod experiment;
 mod guardrails;
 mod hooks;
 mod optimize;
+mod qc;
 mod reframe;
 mod scoreboard;
 mod scoring;
@@ -20,6 +23,7 @@ mod sourcing;
 mod srt;
 mod transcribe;
 mod util;
+mod vision;
 
 use std::collections::BTreeMap;
 use std::path::PathBuf;
@@ -146,6 +150,22 @@ enum Cmd {
         crop_w: i64,
         #[arg(default_value_t = 0.05)]
         jump: f64,
+    },
+    /// Chain the daily loop: source→clip→qc→capture→brief→scoreboard→optimize→distribute→cleanup
+    /// (cross-checks autopilot.py). Exit 1 if any stage failed.
+    Autopilot {
+        /// Max new source videos to clip this run.
+        #[arg(long, default_value_t = 5)]
+        max_videos: usize,
+        /// Reuse the existing DB queue instead of re-fetching (fast).
+        #[arg(long)]
+        skip_source: bool,
+        /// Run the chain but skip the (slow) clip stage.
+        #[arg(long)]
+        no_clip: bool,
+        /// Don't burn the hook title + CTA overlay.
+        #[arg(long)]
+        no_hook: bool,
     },
 }
 
@@ -346,6 +366,23 @@ fn main() -> Result<()> {
             match reframe::crop_x_expr(&pts, scaled_w, crop_w, jump) {
                 Some(e) => println!("{e}"),
                 None => println!("none"),
+            }
+        }
+        Cmd::Autopilot { max_videos, skip_source, no_clip, no_hook } => {
+            let results = autopilot::run(
+                &conn,
+                &root,
+                &autopilot::RunOpts {
+                    max_videos,
+                    skip_source,
+                    do_clip: !no_clip,
+                    hook_cta: !no_hook,
+                    lanes: autopilot::DEFAULT_LANES,
+                },
+            )?;
+            // Mirror cli.py `_cmd_autopilot`: exit 1 if any stage failed.
+            if results.iter().any(|r| !r.ok) {
+                std::process::exit(1);
             }
         }
     }

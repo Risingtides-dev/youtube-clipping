@@ -148,7 +148,8 @@ pub fn compute_scores(rows: &[ClipRow], cfg: &ScoreCfg) -> Vec<Scored> {
                 length_bucket: length_bucket(r.length_sec, &cfg.length_buckets),
                 post_hour: post_hour(&r.posted_at, &cfg.timezone),
                 views: r.views as f64,
-                virality_score: (score * 100.0 * 10.0).round() / 10.0,
+                // Python `(score*100).round(1)` — round-half-to-even via util::round_to.
+                virality_score: crate::util::round_to(score * 100.0, 1),
                 ad_revenue: r.ad_revenue,
                 swipe_away_pct: r.swipe_away_pct,
             }
@@ -170,11 +171,14 @@ pub fn rollup<F: Fn(&Scored) -> String>(scored: &[Scored], key: F, min_sample: i
         .into_iter()
         .filter(|(_, (n, ..))| *n >= min_sample)
         .map(|(key, (n, sc, vw, rev))| Rollup {
+            // Python pandas `.round(n)` is round-half-to-even; util::round_to reproduces it.
+            // Rust's bare `.round()` is round-half-away → diverges on exact .5 ties (e.g. an
+            // avg_views of 0.5 → 0 in Python but 1 with bare round()). Surfaced by autopilot.
             key,
             n,
-            avg_score: ((sc / n as f64) * 10.0).round() / 10.0,
-            avg_views: (vw / n as f64).round(),
-            total_revenue: (rev * 100.0).round() / 100.0,
+            avg_score: crate::util::round_to(sc / n as f64, 1),
+            avg_views: crate::util::round_to(vw / n as f64, 0),
+            total_revenue: crate::util::round_to(rev, 2),
         })
         .collect();
     out.sort_by(|a, b| b.avg_score.partial_cmp(&a.avg_score).unwrap());
