@@ -87,8 +87,13 @@ def _cmd_capture(args: argparse.Namespace) -> int:
 
 
 def _cmd_brief(args: argparse.Namespace) -> int:
+    from . import diagnose
+    from .scoring import analyze
     df = db.clips_with_latest_metrics()
     md = brief_mod.build(df)
+    why = diagnose.diagnose(analyze(df))  # causal layer (None without DeepSeek/data)
+    if why:
+        md += f"\n\n## 🧠 Why it's working (analyst)\n{why}\n"
     db.save_brief(week_start=__import__("datetime").date.today().isoformat(), content=md)
     out = ROOT / "data" / "latest-brief.md"
     out.write_text(md)

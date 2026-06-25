@@ -23,8 +23,12 @@ import pandas as pd
 from . import db, scoring
 from .config import ROOT, settings
 
-WEIGHTS_PATH = ROOT / "data" / "learned-weights.json"
+WEIGHTS_PATH = ROOT / "data" / "learned-weights.json"      # {creator: source multiplier}
+CREATIVE_PATH = ROOT / "data" / "learned-creative.json"    # winning hook styles + length
 LOG_PATH = ROOT / "IMPROVEMENT-LOG.md"
+
+# Hook labels that aren't a learnable creative style (skip them when picking winners).
+_NON_CREATIVE_HOOKS = {"tbd", "heuristic", "manual", "uncategorized", "", "nan"}
 
 _LOG_HEADER = (
     "# Improvement Log — Phoenix Protocol clip factory\n\n"
@@ -72,6 +76,42 @@ def load_weights() -> dict[str, float]:
         return {}
 
 
+def creative_prefs(analysis: dict[str, Any]) -> dict[str, Any]:
+    """The winning CREATIVE levers — top hook styles + best length — so generation can
+    bias toward them (not just sourcing). Pure."""
+    by_hook = analysis.get("by_hook")
+    prefer_hooks: list[str] = []
+    if by_hook is not None and not by_hook.empty:
+        prefer_hooks = [h for h in by_hook.head(2)["hook_type"].astype(str).tolist()
+                        if h.lower() not in _NON_CREATIVE_HOOKS]
+    by_len = analysis.get("by_length")
+    prefer_length = (str(by_len.iloc[0]["length_bucket"])
+                     if by_len is not None and not by_len.empty else None)
+    return {"prefer_hooks": prefer_hooks, "prefer_length": prefer_length}
+
+
+def save_creative(prefs: dict[str, Any]) -> None:
+    CREATIVE_PATH.parent.mkdir(parents=True, exist_ok=True)
+    CREATIVE_PATH.write_text(json.dumps(prefs, indent=2, sort_keys=True))
+
+
+def _load_creative() -> dict[str, Any]:
+    try:
+        return json.loads(CREATIVE_PATH.read_text())
+    except (OSError, ValueError):
+        return {}
+
+
+def preferred_hooks() -> list[str]:
+    """Hook styles the loop has learned are winning (the hook agent biases toward these)."""
+    return _load_creative().get("prefer_hooks") or []
+
+
+def preferred_length() -> str | None:
+    """The length bucket currently over-indexing (e.g. '35-45s')."""
+    return _load_creative().get("prefer_length")
+
+
 def _top_rows(rolled: pd.DataFrame, key: str, n: int = 3) -> str:
     if rolled is None or rolled.empty:
         return "—"
@@ -85,16 +125,19 @@ def format_entry(analysis: dict[str, Any], weights: dict[str, float], today: str
     total_views = 0 if scored is None or scored.empty else int(scored["views"].fillna(0).sum())
     boosted = sorted(k for k, v in weights.items() if v > 1.0)
     cut = sorted(k for k, v in weights.items() if v < 1.0)
+    prefs = creative_prefs(analysis)
     return "\n".join([
         f"## {today}",
         f"- **Sampled:** {n_clips} clips · {total_views:,} total views so far.",
         f"- **Top creators:** {_top_rows(analysis.get('by_creator'), 'source_creator')}",
         f"- **Top formats:** {_top_rows(analysis.get('by_format'), 'fmt')} · "
         f"**lengths:** {_top_rows(analysis.get('by_length'), 'length_bucket')}",
+        f"- **Winning hook styles:** {', '.join(prefs['prefer_hooks']) or '— (not learned yet)'} · "
+        f"**best length:** {prefs['prefer_length'] or '—'} → fed back into hook generation.",
         f"- **Doubling down on:** {', '.join(boosted) or '— (not enough signal yet)'}",
         f"- **Starving:** {', '.join(cut) or '—'}",
-        "- **Why:** winners (top-quantile virality) get sourced harder next cycle; "
-        "losers get throttled. Weights → data/learned-weights.json, applied by sourcing.",
+        "- **Why:** winners (top-quantile virality) get sourced harder next cycle + their "
+        "hook styles bias generation; losers get throttled. → learned-weights/creative.json.",
     ])
 
 
@@ -108,10 +151,13 @@ def run(db_path: Path | None = None, today: str | None = None) -> dict[str, Any]
     today = today or datetime.date.today().isoformat()
     analysis = scoring.analyze(db.clips_with_latest_metrics(db_path))
     weights = creator_weights(analysis)
+    prefs = creative_prefs(analysis)
     save_weights(weights)
+    save_creative(prefs)
     append_log(format_entry(analysis, weights, today))
     return {
         "clips": 0 if analysis["scored"] is None else len(analysis["scored"]),
         "boosted": sorted(k for k, v in weights.items() if v > 1.0),
         "suppressed": sorted(k for k, v in weights.items() if v < 1.0),
+        "prefer_hooks": prefs["prefer_hooks"], "prefer_length": prefs["prefer_length"],
     }

@@ -45,6 +45,39 @@ likely THIS hook succeeds for THIS video. Be discriminating — don't rate every
 - **Open loop** — imply a payoff exists; don't give it away in the title.
 - **Setup-and-cue** — a colon-teased setup (`when she realizes he's right:`, `pov: you skipped this one stretch`) that frames the clip as a reveal, reaction, or punchline. Use when the moment IS the payoff — the hook narrates the setup, the clip delivers the turn.
 
+## Proven hook formulas (scaffolds — fill with THIS clip's specifics, never ship the template)
+- `the [thing] that [surprising / contrarian outcome]:` — e.g. *the cardio pace that quietly adds years to your life:*
+- `nobody [does / talks about] [X] — and it's [costing/giving] them [stakes]`
+- `if you [common behavior], [consequence]` — the callout / labeling if-then
+- `[authority] just [shocking claim]` — borrowed credibility
+- `the real reason [common problem]` — open a loop on the cause
+- `pov: [relatable situation]` — setup-and-cue, the viewer sees themselves
+- `[number] [things] that [benefit / cost]` — the listicle tease
+- `[X] is lying to you about [Y]` / `what [group] won't tell you about [X]`
+
+## Psychological triggers (every hook pulls at least one)
+- **Loss / fear** — the brain weights loss heavier than gain. *"this is silently killing your gains"* > *"do this for better gains."*
+- **Curiosity gap** — assert that an answer exists, withhold it.
+- **Status / identity** — *"high performers do X"*, *"you're not broke, you're undisciplined."*
+- **Contrarian / outrage** — challenge a sacred belief (the POSITION, never a protected group).
+- **Awe / scale** — big specific numbers (*"$2M/yr to not die"*).
+- **Self-recognition** — *"pov: you skipped this one stretch"* — they see their own behavior.
+
+## Craft rules (the line between mid and viral)
+- **First 3 words carry the hook.** Front-load the tension — never warm up.
+- **Specific beats vague.** A number, name, dollar amount, timeframe. *"$8B manager"* > *"an expert."*
+- **Concrete beats abstract.** What a viewer can picture out-reads a concept.
+- **One idea per hook.** Two ideas = zero. Cut to the single sharpest blade.
+- **The "so what" test.** If a viewer could shrug, it isn't a hook — the payoff must feel mandatory.
+- **Talk like a person, not a brand.** Lowercase, plain words, the way you'd text a friend the crazy part.
+
+## Self-check before submitting EACH hook (rewrite if any answer is no)
+1. Does it stop the scroll in the first 3 words?
+2. Is there ONE concrete detail (number / name / stakes)?
+3. Does it open a loop the clip actually pays off?
+4. Could it ONLY sit on THIS clip — not any clip?
+5. Lowercase, ≤10 words, cue punctuation, no protected-group target?
+
 ## Angle tuning (the clip's angle is provided per request)
 - **debate / agitation** — frame conflict and stakes. Attack the POSITION or BEHAVIOR, **never a protected group or person.** Spicy opinion monetizes; hate/harassment gets the channel struck.
 - **finance** — lead with money stakes, loss, or a counterintuitive money truth.

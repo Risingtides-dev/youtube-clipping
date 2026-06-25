@@ -47,3 +47,24 @@ def test_weights_roundtrip_and_log(tmp_path, monkeypatch):
 def test_load_weights_missing_file_is_empty(tmp_path, monkeypatch):
     monkeypatch.setattr(optimize, "WEIGHTS_PATH", tmp_path / "nope.json")
     assert optimize.load_weights() == {}
+
+
+def test_creative_prefs_picks_winning_hook_excludes_tbd():
+    rows = (_clips_h("Curiosity Gap", 400_000, 30) + _clips_h("tbd", 500, 50))
+    prefs = optimize.creative_prefs(_analysis(rows))
+    assert "Curiosity Gap" in prefs["prefer_hooks"]
+    assert "tbd" not in prefs["prefer_hooks"]   # non-creative label filtered out
+    assert prefs["prefer_length"] == "25-35s"   # the winning (high-view) clips are 30s
+
+
+def test_creative_roundtrip(tmp_path, monkeypatch):
+    monkeypatch.setattr(optimize, "CREATIVE_PATH", tmp_path / "c.json")
+    optimize.save_creative({"prefer_hooks": ["Curiosity Gap"], "prefer_length": "25-35s"})
+    assert optimize.preferred_hooks() == ["Curiosity Gap"]
+    assert optimize.preferred_length() == "25-35s"
+
+
+def _clips_h(hook: str, views: int, length: int, n: int = 4) -> list[dict]:
+    return [{"clip_id": f"{hook}-{length}-{i}", "source_creator": "C", "fmt": "auto-clip",
+             "hook_type": hook, "platform": "youtube", "views": views,
+             "length_sec": length, "ad_revenue": 0.0, "retention_pct": 0.0} for i in range(n)]

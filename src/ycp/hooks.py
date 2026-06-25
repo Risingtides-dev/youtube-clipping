@@ -132,18 +132,23 @@ def _coerce_candidate(raw: object) -> dict | None:
 
 
 def generate_candidates(moment: str, n: int = 6, angle: str = "",
-                        model: str | None = None, timeout: int = 30) -> list[dict]:
+                        model: str | None = None, timeout: int = 30,
+                        prefer_types: list[str] | None = None) -> list[dict]:
     """Ask DeepSeek for N hook candidates with their type + self-rated context fit.
 
     Returns a list of {text, type, fit}; [] on any failure (caller falls back to the
-    heuristic). API only — deterministic scoring/selection happens in `best_hook`.
+    heuristic). API only — deterministic scoring/selection happens in `best`.
+    `prefer_types` (the hook styles currently winning for this channel) biases generation.
     """
     key = _api_key()
     if not key:
         return []
     model = model or settings().get("hooks", {}).get("model", DEFAULT_MODEL)
     angle_line = f"This clip's angle: {angle}.\n" if angle else ""
-    prompt = (f"{angle_line}Transcript of the clip moment:\n"
+    prefer_line = (f"These hook types are currently WINNING for this channel: "
+                   f"{', '.join(prefer_types)}. Lean toward them when they fit this clip.\n"
+                   if prefer_types else "")
+    prompt = (f"{angle_line}{prefer_line}Transcript of the clip moment:\n"
               f"\"\"\"{moment.strip()[:1500]}\"\"\"\n\n"
               f"Pick the hook types most likely to succeed for THIS clip, then write {n} "
               f"distinct hook titles as JSON (each with text, type, and a fit score).")
@@ -170,26 +175,37 @@ def generate_candidates(moment: str, n: int = 6, angle: str = "",
     return [c for c in out if c]
 
 
-def _combined_score(cand: dict, angle: str) -> float:
+def _combined_score(cand: dict, angle: str, prefer_types: list[str] | None = None) -> float:
     """Blend the agent's context-fit likelihood (primary — it has the video context)
-    with the deterministic stop-scroll heuristic (backstop). Pure."""
+    with the deterministic stop-scroll heuristic (backstop), plus a nudge toward hook
+    types the loop has learned are winning. Pure."""
     heuristic = min(score_hook(cand["text"], angle) / 5.0, 1.0)  # normalize ~[0,1]
-    return 0.6 * cand["fit"] + 0.4 * heuristic
+    base = 0.6 * cand["fit"] + 0.4 * heuristic
+    if prefer_types and cand.get("type") in prefer_types:
+        base += 0.1  # learned-winner nudge
+    return base
+
+
+def best(moment: str, angle: str = "", n: int = 6, max_words: int = 10,
+         model: str | None = None, prefer_types: list[str] | None = None) -> dict:
+    """The hook agent's answer as {text, type} — the winning candidate (so the loop can
+    learn which hook STYLE won), else the heuristic. Always usable + safe.
+
+    Selection is driven primarily by the agent's per-hook likelihood for THIS video, with
+    the deterministic scorer as a backstop and a nudge toward `prefer_types` (learned winners).
+    """
+    candidates = [c for c in generate_candidates(moment, n, angle, model, prefer_types=prefer_types)
+                  if looks_safe(c["text"])]
+    if candidates:
+        chosen = max(candidates, key=lambda c: _combined_score(c, angle, prefer_types))
+        words = chosen["text"].split()
+        text = " ".join(words[:max_words]) + ("…" if len(words) > max_words else "")
+        return {"text": text, "type": chosen.get("type") or "uncategorized"}
+    fallback = enhance.pick_title(moment, max_words=max_words)
+    return {"text": fallback if looks_safe(fallback) else "", "type": "heuristic"}
 
 
 def best_hook(moment: str, angle: str = "", n: int = 6, max_words: int = 10,
               model: str | None = None) -> str:
-    """The hook agent's answer: the candidate with the best context-fit + score, else
-    the heuristic. Always returns a usable, safe title.
-
-    Selection is driven primarily by the agent's per-hook likelihood of success for
-    THIS video (it read the transcript), with the deterministic scorer as a backstop.
-    """
-    candidates = [c for c in generate_candidates(moment, n, angle, model)
-                  if looks_safe(c["text"])]
-    if candidates:
-        best = max(candidates, key=lambda c: _combined_score(c, angle))
-        words = best["text"].split()
-        return " ".join(words[:max_words]) + ("…" if len(words) > max_words else "")
-    fallback = enhance.pick_title(moment, max_words=max_words)
-    return fallback if looks_safe(fallback) else ""
+    """Back-compat: just the hook text. New code should use `best()` to also get the type."""
+    return best(moment, angle, n, max_words, model)["text"]

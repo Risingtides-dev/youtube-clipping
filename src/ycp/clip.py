@@ -159,6 +159,8 @@ def run(url: str, max_clips: int = 6, lane: str = "owned",
                                     m.score) for m in moments]
         else:
             candidates = plan_clips(segments, top=max_clips)
+        from . import optimize
+        prefer = optimize.preferred_hooks()  # hook styles the loop has learned are winning
         for i, cand in enumerate(candidates):
             clip_id = f"{vid_hash}-{i:02d}"
             # captions_on=False → no chunks → hook renders alone (defer to source's captions).
@@ -168,7 +170,11 @@ def run(url: str, max_clips: int = 6, lane: str = "owned",
             try:
                 cut_vertical(video, cand, staged, workdir)
                 cur = staged
-                clip_title = title or hooks.best_hook(cand.text, angle=angle)
+                if title:
+                    clip_title, hook_type = title, "manual"
+                else:
+                    chosen = hooks.best(cand.text, angle=angle, prefer_types=prefer)
+                    clip_title, hook_type = chosen["text"], chosen["type"]
                 try:
                     cur = captions.burn_captions(
                         staged, chunks, workdir / f"{clip_id}_cap.mp4", workdir,
@@ -187,7 +193,7 @@ def run(url: str, max_clips: int = 6, lane: str = "owned",
                 "clip_id": clip_id, "source_video_id": source_video_id,
                 "source_creator": source_creator, "channel": channel,
                 "platform": "youtube", "lane": lane, "fmt": "auto-clip",
-                "hook_type": "tbd", "length_sec": int(cand.duration), "status": "pending_qc",
+                "hook_type": hook_type, "length_sec": int(cand.duration), "status": "pending_qc",
                 "post_title": clip_title,  # the hook — becomes the YouTube title + post caption
                 "post_url": str(out),  # local preview path until posted
             }, db_path)

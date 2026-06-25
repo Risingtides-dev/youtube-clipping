@@ -195,11 +195,17 @@ def run(
     # 5 ─ BRIEF ──────────────────────────────────────────────────────────────────
     def _brief() -> str:
         import datetime
+
+        from . import diagnose
+        from .scoring import analyze
         dframe = db.clips_with_latest_metrics(db_path)
         md = brief_mod.build(dframe)
+        why = diagnose.diagnose(analyze(dframe))  # WHY layer (None without DeepSeek/data)
+        if why:
+            md += f"\n\n## 🧠 Why it's working (analyst)\n{why}\n"
         db.save_brief(week_start=datetime.date.today().isoformat(), content=md, db_path=db_path)
         (ROOT / "data" / "latest-brief.md").write_text(md)
-        return "Double-Down Brief → data/latest-brief.md"
+        return "Double-Down Brief (+why)" if why else "Double-Down Brief → data/latest-brief.md"
 
     _stage("brief", _brief, results, log)
 

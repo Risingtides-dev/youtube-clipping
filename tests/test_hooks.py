@@ -54,6 +54,28 @@ def test_context_fit_drives_selection(monkeypatch):
     assert hooks.best_hook("transcript", angle="finance") == "Buy a business not a job"
 
 
+def test_best_returns_text_and_type(monkeypatch):
+    monkeypatch.setattr(hooks, "generate_candidates", lambda *a, **k: [
+        {"text": "the cardio pace that adds years:", "type": "Curiosity Gap", "fit": 0.9}])
+    r = hooks.best("transcript")
+    assert r["text"] == "the cardio pace that adds years:" and r["type"] == "Curiosity Gap"
+
+
+def test_best_heuristic_fallback_marks_type(monkeypatch):
+    monkeypatch.setattr(hooks, "generate_candidates", lambda *a, **k: [])
+    r = hooks.best("Why does nobody talk about this? It matters.")
+    assert r["text"] and r["type"] == "heuristic"
+
+
+def test_prefer_types_nudge_breaks_the_tie(monkeypatch):
+    # Same text (same heuristic); Reframe has higher fit, but Pattern Interrupt is a learned
+    # winner → the +0.1 nudge flips selection to it.
+    monkeypatch.setattr(hooks, "generate_candidates", lambda *a, **k: [
+        {"text": "identical style line", "type": "Reframe", "fit": 0.72},
+        {"text": "identical style line", "type": "Pattern Interrupt", "fit": 0.70}])
+    assert hooks.best("t", prefer_types=["Pattern Interrupt"])["type"] == "Pattern Interrupt"
+
+
 def test_coerce_accepts_string_and_dict():
     assert hooks._coerce_candidate("Hook text")["text"] == "Hook text"
     assert hooks._coerce_candidate({"text": "X", "type": "Reframe", "fit": "0.8"})["fit"] == 0.8
