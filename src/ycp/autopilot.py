@@ -40,6 +40,10 @@ def angle_for(niche: str | None) -> str:
         return "agitation"
     if "finance" in n or "money" in n:
         return "finance"
+    # Phoenix Protocol = transformation: push the viewer past their comfort zone
+    # (you-can-do-hard-things register), not "the science says". Embodiers > experts.
+    if "health" in n or "mythbust" in n or "phoenix" in n or "transformation" in n:
+        return "transformation"
     return ""
 
 

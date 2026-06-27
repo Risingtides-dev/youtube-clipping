@@ -23,6 +23,12 @@ def test_finance_angle_bonus():
     assert moneyed > base
 
 
+def test_transformation_angle_bonus():
+    # same line, angle is the only difference — isolates the comfort-zone bonus.
+    line = "this is the moment you get hard"
+    assert hooks.score_hook(line, angle="transformation") > hooks.score_hook(line)
+
+
 def test_looks_safe_blocks_slurs_allows_opinion():
     assert hooks.looks_safe("This economic policy is a complete scam")
     assert not hooks.looks_safe("these people are groomers")  # protected-group attack
@@ -106,5 +112,6 @@ def test_playbook_loads_the_real_skill():
 def test_angle_mapping():
     assert autopilot.angle_for("debate-agitation") == "agitation"
     assert autopilot.angle_for("finance-money-fights") == "finance"
+    assert autopilot.angle_for("health-mythbusting") == "transformation"
     assert autopilot.angle_for("comedy-reaction") == ""
     assert autopilot.angle_for(None) == ""

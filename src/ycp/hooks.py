@@ -85,6 +85,13 @@ def score_hook(hook: str, angle: str = "") -> float:
         score += 0.4
     if angle in ("debate", "agitation") and wset & {"vs", "destroys", "owns", "wrong", "fight"}:
         score += 0.4
+    # transformation (Phoenix Protocol): reward the comfort-zone / "you can do hard
+    # things" register — the Goggins/Wim Hof/Rich Roll energy, second person.
+    if angle == "transformation" and wset & {
+        "comfort", "hard", "weak", "quit", "discipline", "soft", "excuses",
+        "pain", "stop", "become", "great", "greatness", "easy", "nobody",
+    }:
+        score += 0.4
     return round(score, 3)
 
 

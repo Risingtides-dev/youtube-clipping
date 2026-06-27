@@ -83,18 +83,25 @@ The **format is the path**; these five steps are how an agent *walks it and impr
 - **Optimize on → share-rate + raw view ceiling.** Comedy has to travel, so **raise the bar:**
   median ≥10K OR ≥1 clip >250K, or it isn't landing. Shares are the comedy tell.
 
-## Channel 4 — "Myth-Busting" · health & fitness  ⏳ WAVE 2
-*Identity: the 30-second correction to what you believed.*
+## Channel 4 — "Phoenix Protocol" · transformation  🔥 LIVE
+*Identity: proof you can become someone new on the other side of your comfort zone.*
 
-- **`niches.yaml` group:** `health-mythbusting`  ·  **angle:** CHANNEL-CONCEPTS.md §Concept 4
-- **Clip from:** `@RenaissancePeriodization` (Dr Mike — *encourages* clips) · `@bryanjohnson`
-  (viral ceiling) · `@JeffNippard` · `@drgabriellelyon` (whitespace)
-- **The format (your path):** "You've been told X. You're wrong." → the correction → the receipt.
-- **Hook:** the counterintuitive claim ("research actually says X").
-- **Guardrails:** clip the **myth-bust / persona — never a health prescription.** Avoid fringe
-  supplement/medical claims (demonetization), Huberman (terms), Attia (paywall).
-- **Optimize on → saves (screenshot-bait).** Evergreen + sticky: saves and rewatches beat raw
-  velocity here. Low-time-pressure back-catalog → test hooks freely.
+- **`niches.yaml` group:** `health-mythbusting` (key unchanged)  ·  **angle:** `transformation`
+  (`autopilot.angle_for` → tunes the hook prompt + scorer to the comfort-zone register)
+- **Clip from — SPINE (embodiers, own clean channels):** `@richroll` (addict→ultra = the phoenix
+  story) · `@wimhofmethod` · `@ShawnRyanShow` (rock-bottom→rebuilt) · `@TomBilyeu` · `@EdMylettShow`
+  (max-effort motivation). **Firehose:** `@ChrisWillx` (Goggins-types appear as GUESTS).
+  **Credibility garnish:** `@RenaissancePeriodization` · `@JeffNippard` · `@biolayne1` · `@bryanjohnson`.
+- **The format (your path):** the line that hits your chest → the turn → "you can do hard things."
+  Clip for the screenshot-the-quote moment, not the training-notebook moment.
+- **Hook:** second-person challenge — "the comfort zone is the enemy", "nobody's coming to save you",
+  not "the science says". Embodiers > experts.
+- **Guardrails:** **no copyrighted music** — the genre lives on epic orchestral beds = instant
+  Content-ID; `guardrails.publish_allowed` HARD-BLOCKS `has_music:true`, so source clean-VO segments
+  (avoid music under the source). **Huberman/Attia are gate-blocked** (terms) — surface only as guests
+  on the firehose. Agitation attacks **the comfort zone**, never a person/group. No medical prescriptions.
+- **Optimize on → shares + saves.** Shareable (motivational = sent to a friend) AND sticky (saved to
+  rewatch). Evergreen back-catalog, low time-pressure → test hooks freely.
 
 ## Channel 5 — "Boardroom" · business & mindset authority  🪑 ON DECK  *(name = working title)*
 *Identity: the contrarian expert take that reframes the room.*
