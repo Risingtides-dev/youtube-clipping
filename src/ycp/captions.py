@@ -217,9 +217,10 @@ def _draw_chunk(draw, chunk: Chunk, t: float, w: int, y: int, max_size: int,
     total = sum(widths) + gap * (len(chunk.words) - 1)
     x = (w - total) // 2
     for word, ww in zip(chunk.words, widths):
-        # All words yellow (operator's pick) — no per-word focus highlight.
+        # Per-word focus: the word being spoken at `t` is white, the rest stay yellow.
+        focused = word.start <= t < word.end
         draw.text((x, y), _case(word.text, case), font=font, anchor="la",
-                  fill=ACTIVE, stroke_width=stroke, stroke_fill=OUTLINE)
+                  fill=IDLE if focused else ACTIVE, stroke_width=stroke, stroke_fill=OUTLINE)
         x += ww + gap
 
 
