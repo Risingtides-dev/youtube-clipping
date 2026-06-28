@@ -46,6 +46,26 @@ def provenance(clip_id: str, db_path: Path | None = None):
             "FROM clips WHERE clip_id=?", (clip_id,)).fetchone()
 
 
+def pin(clip_id: str, url: str, start: float, end: float, *, creator: str | None = None,
+        title: str | None = None, channel: str | None = None, db_path: Path | None = None) -> dict:
+    """Pin provenance onto a clip that predates tracking (the backlog salvage path): paste the
+    source URL + in/out and it becomes re-cuttable. Updates the row if present, else inserts a
+    minimal one (so the loop can apply ops right after)."""
+    db.init_db(db_path)
+    with connect(db_path) as c:
+        exists = c.execute("SELECT 1 FROM clips WHERE clip_id=?", (clip_id,)).fetchone()
+        if exists:
+            c.execute("UPDATE clips SET source_url=?, clip_start=?, clip_end=? WHERE clip_id=?",
+                      (url, round(start, 2), round(end, 2), clip_id))
+            return {"ok": True, "inserted": False}
+    db.insert_clip({"clip_id": clip_id, "channel": channel or "ai-frontier", "platform": "youtube",
+                    "lane": "owned", "fmt": None, "hook_type": None, "length_sec": None,
+                    "source_creator": creator, "post_title": title,
+                    "source_url": url, "clip_start": round(start, 2), "clip_end": round(end, 2)},
+                   db_path)
+    return {"ok": True, "inserted": True}
+
+
 def plan(clip_id: str, ops: list[dict], db_path: Path | None = None) -> dict:
     """Resolve a refinement request to a concrete re-cut spec (pure given provenance). Returns
     {ok, url, start, end, title, creator, channel, notes} or {ok: False, reason}."""

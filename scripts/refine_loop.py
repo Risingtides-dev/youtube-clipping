@@ -68,6 +68,11 @@ def process(job_path: Path) -> None:
     job_path.unlink(missing_ok=True)
     log(f"▶ refining {cid}  ops={[o['type'] for o in ops]}")
     try:
+        if job.get("pin"):                          # backlog salvage: pin pasted source first
+            p = job["pin"]
+            refine.pin(cid, p["url"], p["start"], p["end"], creator=p.get("creator"),
+                       title=p.get("title"), channel=p.get("channel"))
+            log(f"  pinned source for {cid}: {p['url'].split('=')[-1]} @ {p['start']:.0f}s")
         res = refine.apply(cid, ops)
         if res.get("ok"):
             log(f"✓ {cid} → {Path(res['file']).name}  bounds={res['bounds']}")
