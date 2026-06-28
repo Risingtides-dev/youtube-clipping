@@ -212,6 +212,26 @@ def _trim_to_speaker(video: Path, cand: Candidate, segments: list[Segment]) -> C
     return cand
 
 
+def _already_produced(vid_hash: str, channel: str, creator: str,
+                      title: str | None, db_path: Path | None) -> bool:
+    """True if this clip already exists — by source+moment id (files in any clips/ subfolder)
+    or by creator+title in the DB. Stops the pipeline from regenerating clips already produced
+    (incl. ones the operator already reviewed/used)."""
+    if list(CLIPS_DIR.glob(f"**/{vid_hash}-*.mp4")):
+        return True
+    if title:
+        from .db import connect
+        try:
+            with connect(db_path) as c:
+                row = c.execute(
+                    "SELECT 1 FROM clips WHERE channel=? AND source_creator=? AND post_title=? LIMIT 1",
+                    (channel, creator, title)).fetchone()
+            return row is not None
+        except Exception:  # noqa: BLE001  (dedup is best-effort; never block a cut on a db hiccup)
+            return False
+    return False
+
+
 def run(url: str, max_clips: int = 6, lane: str = "owned",
         source_creator: str = "unknown", channel: str = "clips",
         hook_cta: bool = True, title: str | None = None, cta: str = "Subscribe for more",
@@ -234,6 +254,12 @@ def run(url: str, max_clips: int = 6, lane: str = "owned",
     # Include the start offset so two DIFFERENT moments cut from the SAME video get distinct
     # ids (else clip_id collides and the second silently overwrites the first).
     vid_hash = hashlib.sha1(f"{url}@{start_sec}".encode()).hexdigest()[:8]
+    # DEDUP — never remake a clip we already have. Skip if this exact source+moment was already
+    # produced (its files exist in ANY clips/ folder), or a clip with the same creator+title is
+    # already in the DB (catches earlier-scheme ids + manually-sorted clips).
+    if _already_produced(vid_hash, channel, source_creator, title, db_path):
+        print(f"  ⟳ skip — already produced: {source_creator} “{title or '(auto-hook)'}”")
+        return []
     with tempfile.TemporaryDirectory(prefix="ycp-clip-") as tmp:
         workdir = Path(tmp)
         video = download(url, workdir, window_sec=window_sec, start_sec=start_sec)
