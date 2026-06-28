@@ -74,7 +74,7 @@ the point (use the note; WebSearch / 'ycp goldmine <url>' to find the moment; NE
 Rogan/JRE); (4) re-cut: .venv/bin/python -m ycp clip \"<url>\" --max 1 --start <MIN>
 --window <~1.2> --creator \"<who>\" --channel ai-frontier --title \"<hook>\" (auto-frames,
 trims, QC-gates); (5) confirm it routed to data/clips/unreviewed/. Max 2 attempts per clip.
-Be concise." --dangerously-skip-permissions >>"$LOG" 2>&1 || echo "$(date '+%T') agent error" >>"$LOG"
+Be concise." --dangerously-skip-permissions </dev/null >>"$LOG" 2>&1 || echo "$(date '+%T') agent error" >>"$LOG"
   echo "$pending" >> "$LEDGER"     # mark attempted so failures don't loop
   echo "$(date '+%T') done" | tee -a "$LOG"
 }
