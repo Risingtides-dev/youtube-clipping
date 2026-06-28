@@ -127,6 +127,17 @@ def _cmd_clip(args: argparse.Namespace) -> int:
     return 0
 
 
+def _cmd_refine(args: argparse.Namespace) -> int:
+    from . import refine
+    r = refine.apply(args.clip_id, [{"type": args.type, "value": args.value}])
+    if r.get("ok"):
+        print(f"✓ {args.type}: re-cut → {r['clip_id']} ({r['bounds'][0]}–{r['bounds'][1]}s) "
+              f"in unreviewed/  ·  same moment, not re-sourced")
+        return 0
+    print(f"✗ {r.get('reason')}")
+    return 1
+
+
 def _cmd_notes(args: argparse.Namespace) -> int:
     from . import notes
     folder = ROOT / "data" / "clips" / args.folder
@@ -260,6 +271,11 @@ def build_parser() -> argparse.ArgumentParser:
                     help="start the slice MIN minutes in (skip the cold-open montage; target deep gold). "
                          "Pair with --window, e.g. --start 42 --window 8")
     cl.set_defaults(fn=_cmd_clip)
+    rf = sub.add_parser("refine", help="re-cut a clip's EXACT moment with one fix (start|end|crop|captions|hook)")
+    rf.add_argument("clip_id")
+    rf.add_argument("type", choices=["start", "end", "crop", "captions", "hook"])
+    rf.add_argument("value", nargs="?", default="", help="seconds (start/end, signed) | text (hook) | guidance")
+    rf.set_defaults(fn=_cmd_refine)
     nt = sub.add_parser("notes", help="list operator review-notes attached to clips (filename ' -- ' or Finder comment)")
     nt.add_argument("--folder", default="unusable", help="clips subfolder to scan (default unusable)")
     nt.set_defaults(fn=_cmd_notes)

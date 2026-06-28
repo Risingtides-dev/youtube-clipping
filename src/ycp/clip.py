@@ -15,6 +15,7 @@ Pure logic (`plan_clips`, `score_candidate`) is unit-tested; the subprocess step
 from __future__ import annotations
 
 import hashlib
+import os
 import shutil
 import subprocess
 import tempfile
@@ -237,7 +238,8 @@ def run(url: str, max_clips: int = 6, lane: str = "owned",
         hook_cta: bool = True, title: str | None = None, cta: str = "Subscribe for more",
         gameplay: Path | None = None, source_video_id: str | None = None,
         angle: str = "", window_sec: int | None = None, start_sec: int = 0,
-        captions_on: bool = True, db_path: Path | None = None) -> list[dict]:
+        captions_on: bool = True, exact: tuple[float, float] | None = None,
+        db_path: Path | None = None) -> list[dict]:
     """Full pipeline: url -> ranked vertical clips with hook title + captions, registered for QC.
 
     Every clip gets the DeepSeek hook title (the highest-leverage lever) and opus-style
@@ -251,31 +253,40 @@ def run(url: str, max_clips: int = 6, lane: str = "owned",
     """
     db.init_db(db_path)
     created: list[dict] = []
-    # Include the start offset so two DIFFERENT moments cut from the SAME video get distinct
-    # ids (else clip_id collides and the second silently overwrites the first).
-    vid_hash = hashlib.sha1(f"{url}@{start_sec}".encode()).hexdigest()[:8]
-    # DEDUP — never remake a clip we already have. Skip if this exact source+moment was already
-    # produced (its files exist in ANY clips/ folder), or a clip with the same creator+title is
-    # already in the DB (catches earlier-scheme ids + manually-sorted clips).
-    if _already_produced(vid_hash, channel, source_creator, title, db_path):
-        print(f"  ⟳ skip — already produced: {source_creator} “{title or '(auto-hook)'}”")
-        return []
+    # REFINEMENT (exact) mode: re-cut a precise [in, out] of the source — no moment-pick, honour
+    # the bounds. Each refine gets a fresh id and bypasses the dedup (re-cutting is intentional).
+    if exact:
+        start_sec = int(exact[0])
+        window_sec = max(1, int(round(exact[1] - exact[0])))
+        vid_hash = hashlib.sha1(f"{url}@{exact}@{title}@{os.urandom(4).hex()}".encode()).hexdigest()[:8]
+    else:
+        # Include the start offset so two DIFFERENT moments cut from the SAME video get distinct
+        # ids (else clip_id collides and the second silently overwrites the first).
+        vid_hash = hashlib.sha1(f"{url}@{start_sec}".encode()).hexdigest()[:8]
+        # DEDUP — never remake a clip we already have.
+        if _already_produced(vid_hash, channel, source_creator, title, db_path):
+            print(f"  ⟳ skip — already produced: {source_creator} “{title or '(auto-hook)'}”")
+            return []
     with tempfile.TemporaryDirectory(prefix="ycp-clip-") as tmp:
         workdir = Path(tmp)
         video = download(url, workdir, window_sec=window_sec, start_sec=start_sec)
         segments = transcribe(video, workdir)
-        # Over-generate candidates, then prefer windows where the SPEAKER is on camera — a
-        # talk that cut to a full-screen slide (or b-roll) has no face to follow and reframes
-        # to the slide, not the person. Gate added 2026-06-27 after a Karpathy clip sat on a slide.
-        n_pick = max(max_clips, 6)
-        candidates = _vision_candidates(video, segments, n_pick)
-        if not candidates:  # vision off/unavailable, or every moment too short once clamped
-            # Cap the heuristic fallback at MAX_CLIP_SEC too — the vision path clamps to it, so the
-            # fallback must as well, else a 50-60s window slips through to QC.
-            candidates = plan_clips(segments, max_len=MAX_CLIP_SEC, top=n_pick)
-        candidates = _prefer_on_camera(video, candidates, max_clips)
-        candidates = [_trim_to_speaker(video, c, segments) for c in candidates]
-        candidates = [_extend_to_sentence(c, segments) for c in candidates]
+        if exact:
+            # The whole downloaded segment IS the clip — no moment-pick, no on-camera gate, no
+            # trim/extend. The operator (refinement request) defined these exact bounds.
+            dur = captions._probe_duration(video) or float(window_sec or 0)
+            candidates = [Candidate(0.0, round(dur, 2), _window_text(segments, 0.0, dur), 1.0)]
+        else:
+            # Over-generate candidates, then prefer windows where the SPEAKER is on camera — a
+            # talk that cut to a full-screen slide (or b-roll) has no face to follow and reframes
+            # to the slide. Gate added 2026-06-27 after a Karpathy clip sat on a slide.
+            n_pick = max(max_clips, 6)
+            candidates = _vision_candidates(video, segments, n_pick)
+            if not candidates:  # vision off/unavailable, or every moment too short once clamped
+                candidates = plan_clips(segments, max_len=MAX_CLIP_SEC, top=n_pick)
+            candidates = _prefer_on_camera(video, candidates, max_clips)
+            candidates = [_trim_to_speaker(video, c, segments) for c in candidates]
+            candidates = [_extend_to_sentence(c, segments) for c in candidates]
         from . import optimize
         prefer = optimize.preferred_hooks()  # hook styles the loop has learned are winning
         ab = settings().get("ab", {})
@@ -323,7 +334,9 @@ def run(url: str, max_clips: int = 6, lane: str = "owned",
                 # usable → unreviewed/ (for human review); not usable → unusable/ (auto-reject,
                 # so charts/wide-tiny/cut-off clips never reach the human queue). Fails OPEN
                 # (usable) when Gemini is unavailable, so it can't silently swallow everything.
-                review = vision.review_clip(cur)
+                # Refinements (exact) are operator-requested → always go to unreviewed for review,
+                # never auto-rejected. Fresh cuts still pass the gate.
+                review = {"usable": True, "reviewed": False} if exact else vision.review_clip(cur)
                 usable = review.get("usable", True)
                 status = "pending_qc" if usable else "rejected"
                 out = CLIPS_DIR / ("unreviewed" if usable else "unusable") / f"{variant_id}.mp4"
@@ -345,6 +358,11 @@ def run(url: str, max_clips: int = 6, lane: str = "owned",
                     "score": float(cand.score), "status": status, "post_title": hook["text"],
                     "experiment_id": exp_id, "variant": hook["type"] if exp_id else None,
                     "post_url": str(out),  # local preview path until posted
+                    # provenance: the EXACT source + absolute in/out, so refinement ops can re-cut
+                    # this same moment (download offset + the picked window within it).
+                    "source_url": url,
+                    "clip_start": round(float(start_sec) + cand.start, 2),
+                    "clip_end": round(float(start_sec) + cand.end, 2),
                 }, db_path)
                 created.append({"clip_id": variant_id, "file": str(out),
                                 "score": cand.score, "len": cand.duration,
