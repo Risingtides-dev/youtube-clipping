@@ -343,7 +343,7 @@ def burn_captions(base_clip: Path, chunks: list[Chunk], out_path: Path, workdir:
         "ffmpeg", "-y", "-i", str(base_clip),
         "-framerate", str(fps), "-start_number", "0", "-i", str(frames / "%05d.png"),
         "-filter_complex", "[0:v][1:v]overlay=0:0:format=auto:eof_action=pass",
-        "-c:v", "libx264", "-c:a", "copy", "-preset", "veryfast", "-pix_fmt", "yuv420p",
+        "-c:v", "libx264", "-crf", "18", "-c:a", "copy", "-preset", "veryfast", "-pix_fmt", "yuv420p",
         str(tmp_out),
     ]
     proc = subprocess.run(cmd, capture_output=True, text=True, timeout=600)

@@ -135,7 +135,12 @@ def _section(start_sec: int, window_sec: int | None) -> str:
 def download(url: str, workdir: Path, window_sec: int | None = None,
              start_sec: int = 0) -> Path:
     out = workdir / "source.mp4"
-    cmd = ["yt-dlp", "-f", "mp4/best", "-o", str(out)]
+    # `mp4/best` grabs YouTube's *progressive* single-file mp4 — capped at 360p/720p — so every
+    # clip starts life upscaled. Ask for the best separate video+audio (DASH, up to 1080p) and
+    # merge to mp4: real source resolution → no pixelation from upscaling a low-res start.
+    cmd = ["yt-dlp",
+           "-f", "bestvideo[height<=1080][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=1080]+bestaudio/best",
+           "--merge-output-format", "mp4", "-o", str(out)]
     if window_sec or start_sec:
         # Bound long sources (podcasts): grab [start_sec, start_sec+window_sec]. The downloaded
         # file starts at ~0, so transcript/vision/cut timestamps stay chunk-relative downstream.
@@ -159,7 +164,7 @@ def cut_vertical(video: Path, cand: Candidate, out_path: Path, workdir: Path) ->
     `captions.burn_captions` (this ffmpeg has no libass/freetype text filters)."""
     trimmed = workdir / "trim.mp4"
     cmd = ["ffmpeg", "-y", "-i", str(video), "-ss", str(cand.start), "-t", str(cand.duration),
-           "-c:v", "libx264", "-c:a", "aac", "-preset", "veryfast", str(trimmed)]
+           "-c:v", "libx264", "-crf", "18", "-c:a", "aac", "-preset", "veryfast", str(trimmed)]
     proc = subprocess.run(cmd, capture_output=True, text=True, timeout=600, cwd=workdir)
     if proc.returncode != 0 or not trimmed.exists():
         raise RuntimeError(f"ffmpeg trim failed: {proc.stderr.strip()[-400:]}")

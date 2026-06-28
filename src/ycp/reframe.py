@@ -360,7 +360,7 @@ def reframe(video: Path, out_path: Path, workdir: Path, *, mode: str = "face",
     tmp = workdir / "reframed.mp4"
     last_err = ""
     for vf in ([face_vf, center_vf] if face_vf else [center_vf]):
-        cmd = ["ffmpeg", "-y", "-i", str(video), "-vf", vf, "-c:v", "libx264",
+        cmd = ["ffmpeg", "-y", "-i", str(video), "-vf", vf, "-c:v", "libx264", "-crf", "18",
                "-c:a", "copy", "-preset", "veryfast", "-pix_fmt", "yuv420p", str(tmp)]
         proc = subprocess.run(cmd, capture_output=True, text=True, timeout=600)
         if proc.returncode == 0 and tmp.exists():
