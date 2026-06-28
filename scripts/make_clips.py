@@ -86,49 +86,44 @@ def log(msg: str) -> None:
     print(line, flush=True)
 
 
-def jobs_for(src: dict, round_no: int = 0) -> list[dict]:
-    """Clip jobs for a source. Round 0 = the most-replayed heatmap peaks (best shot at a keeper);
-    later rounds scan progressively deeper slices of the SAME video, so re-looping for more approved
-    clips keeps finding fresh moments instead of re-cutting the same rejected one."""
+def best_job(src: dict) -> dict:
+    """ONE clip per video: its single most-replayed moment (or first-N-min fallback). One video →
+    at most one clip, so the batch spans distinct videos instead of stacking versions of one."""
     url, creator = src["url"], src["creator"]
-    if round_no == 0:
-        try:
-            peaks, _ = goldmine.run(url, top=PEAKS_PER_SOURCE)
-        except Exception as e:  # noqa: BLE001
-            log(f"  heatmap failed for {creator}: {e}")
-            peaks = []
-        if peaks:
-            return [{"url": url, "creator": creator,
-                     "start_min": round(max(0.0, (pk.start - 20) / 60.0), 2), "window_min": 3}
-                    for pk in peaks]
-    # no heatmap (round 0) or a later loop → scan a fresh slice deeper into the source
-    start = round_no * FALLBACK_WINDOW_MIN
-    return [{"url": url, "creator": creator, "start_min": float(start),
-             "window_min": FALLBACK_WINDOW_MIN}]
+    try:
+        peaks, _ = goldmine.run(url, top=1)
+    except Exception as e:  # noqa: BLE001
+        log(f"  heatmap failed for {creator}: {e}")
+        peaks = []
+    if peaks:
+        pk = peaks[0]
+        return {"url": url, "creator": creator,
+                "start_min": round(max(0.0, (pk.start - 20) / 60.0), 2), "window_min": 3}
+    return {"url": url, "creator": creator, "start_min": 0.0, "window_min": FALLBACK_WINDOW_MIN}
 
 
-def cut(job: dict) -> None:
+def cut(src: dict) -> None:
     global _made
     if _stop.is_set():
         return
+    job = best_job(src)                        # heatmap lookup in the worker (parallel)
     try:
         created = clip_mod.run(
             job["url"], max_clips=1, source_creator=job["creator"], channel=CHANNEL,
-            hook_cta=True, captions_on=True, force=True,   # never dedup-skip — always cut fresh
+            hook_cta=True, captions_on=True,   # dedup ON (no force) — never remake the same clip
             start_sec=int(job["start_min"] * 60), window_sec=int(job["window_min"] * 60))
     except Exception as e:  # noqa: BLE001 — one bad source must not kill the mission
         log(f"✗ {job['creator']} @ {job['start_min']:.1f}m: {e}")
         return
     with _lock:
         for c in created:
-            passed = "/unreviewed/" in c["file"]      # gate-passed clips land here; rejects → unusable/
-            if passed:
+            if "/unreviewed/" in c["file"]:    # gate-passed → counts; rejects → unusable/, don't count
                 _made += 1
                 log(f"✓ [{_made}/{TARGET}] {job['creator']}  {Path(c['file']).name}  “{c.get('post_title') or ''}”")
+                if _made >= TARGET:
+                    _stop.set()
             else:
-                log(f"✗ gate rejected → unusable: {job['creator']}  “{c.get('post_title') or ''}”")
-        if _made >= TARGET:
-            _stop.set()
+                log(f"✗ rejected → unusable: {job['creator']}  “{c.get('post_title') or ''}”")
 
 
 def main() -> int:
@@ -157,29 +152,17 @@ def main() -> int:
             if q:
                 order.append(q.popleft())
 
-    # LOOP until TARGET clips actually PASS the gate — not 20 attempts, 20 approved. Each round
-    # scans a fresh slice of every source, so rejects don't get re-cut identically. Capped so it
-    # can't run forever if a feed is genuinely dry.
+    # One clip per DISTINCT video, processed across the roster, until TARGET pass the gate. No
+    # re-cutting the same source (dedup is on), so the batch is 20 different videos, not 20 versions
+    # of one. With ~100 sources and the gate rejecting some, this comfortably reaches 20.
     from concurrent.futures import wait
+    log(f"{len(order)} distinct videos queued → cutting one moment each until {TARGET} pass the gate")
     pool = ThreadPoolExecutor(max_workers=CAP)
-    for rnd in range(MAX_ROUNDS):
-        if _stop.is_set():
-            break
-        log(f"── round {rnd + 1}/{MAX_ROUNDS} · {_made}/{TARGET} approved so far ──")
-        futures = []
-        for src in order:
-            if _stop.is_set():
-                break
-            for job in jobs_for(src, rnd):
-                if _stop.is_set():
-                    break
-                futures.append(pool.submit(cut, job))
-        wait(futures)                       # let this round finish before deciding on another
-        if _made >= TARGET:
-            break
+    futures = [pool.submit(cut, src) for src in order]
+    wait(futures)
     pool.shutdown(wait=True)
     log(f"done — {_made}/{TARGET} approved clips in data/clips/unreviewed/"
-        + ("" if _made >= TARGET else "  (sources ran dry before target)"))
+        + ("" if _made >= TARGET else "  (ran out of distinct videos before target — re-source for more)"))
     return 0
 
 
