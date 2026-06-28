@@ -31,8 +31,21 @@ def _finder_comment(path: Path) -> str:
         return ""
 
 
+def sidecar_for(path: Path) -> Path:
+    """The `<clip_id>.note.txt` sidecar a TextEdit window writes into."""
+    return path.parent / f"{clip_id_for(path)}.note.txt"
+
+
 def note_for(path: Path) -> str:
-    """The operator's note for a clip: filename ` -- suffix` first, else the Finder comment."""
+    """The operator's note for a clip. Priority: the `.note.txt` sidecar (what the drop-to-edit
+    flow writes), then a filename ` -- suffix`, then a macOS Finder comment. '#' lines in the
+    sidecar are treated as the template prompt and ignored."""
+    sc = sidecar_for(path)
+    if sc.exists():
+        body = "\n".join(ln for ln in sc.read_text().splitlines()
+                         if not ln.lstrip().startswith("#")).strip()
+        if body:
+            return body
     if SEP in path.stem:
         return path.stem.split(SEP, 1)[1].strip()
     return _finder_comment(path)
