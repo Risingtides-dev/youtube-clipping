@@ -25,7 +25,8 @@ Companion to `YOUTUBE-CLIPPING-WORKFLOW.md`. This is the do-it order for the fir
 
 ## Week 1 — Closed-loop DB (automation — Claude builds)
 - [ ] **Stand up the Clip Performance DB** (Google Sheet with the §6.1 schema).
-- [ ] **Build the daily capture script** (public views → DB; YouTube Analytics API → DB once channels hit YPP).
+- [ ] **Build the daily capture script** (public views → DB; YouTube Analytics API → DB once channels hit YPP). *(Built: `ycp capture` / `autopilot`.)*
+- [ ] **Connect each owned channel's analytics (OAuth) — required to close the loop on retention + revenue.** In Google Cloud Console create an OAuth **desktop** client, download `client_secret*.json`, then run `.venv/bin/python scripts/yt_oauth.py` (it auto-grabs the newest `client_secret*.json` from `~/Downloads`, or pass the path). It writes `YT_CLIENT_ID` / `YT_CLIENT_SECRET` / `YT_REFRESH_TOKEN` / `YT_CHANNEL_ID` to `.env` and prints `✓ Authorized: <channel>`. **Without this, the loop scores on public view counts only — no retention %, no swipe-away, no ad revenue feeding the next cycle.** Re-run once per owned channel.
 - [ ] **Build the sourcing rank script** (yt-dlp / YT Data API → ranked daily queue by view-velocity).
 
 ## Week 2 — First clips live (full pipeline dry run)

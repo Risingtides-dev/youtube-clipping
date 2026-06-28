@@ -188,7 +188,8 @@ Every Monday, an automated one-pager:
 This brief **becomes next week's Stage 1 sourcing spec.** That's the closed loop: post → measure → score → decide → source to the decision → post. Who/what/format/where to double down, answered with data every week.
 
 ### 6.4 Tooling
-- **Capture:** Daily script snapshots public views (and YouTube Analytics once channels hit YPP) → appends to the DB. (Build target — see Next steps.)
+- **Capture:** Daily script snapshots public views (and YouTube Analytics once channels hit YPP) → appends to the DB.
+- **Connect analytics (one-time per owned channel):** retention %, swipe-away, and ad revenue are **owner-only** data a public API key can't see. Authorize each channel once — create a Google Cloud OAuth desktop client, download `client_secret*.json`, run `.venv/bin/python scripts/yt_oauth.py`. Until this is done, the loop optimizes on **public views only**; after it, `capture_full_analytics` pulls the retention curve into scoring automatically.
 - **Score + Brief:** Weekly aggregation. Per your ops rules, the heavy roll-up/scoring is **offloaded to local Ollama** (it's repetitive batch work) — Claude builds the script, Ollama grinds the numbers, you read the brief.
 - **Surface:** Brief drops into Slack/Notion every Monday.
 
