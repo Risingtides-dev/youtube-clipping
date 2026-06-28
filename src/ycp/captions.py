@@ -47,7 +47,7 @@ OUTLINE = (0, 0, 0, 255)        # fat black stroke for legibility over any foota
 # pops on mute over any footage, on-brand (brand near-white #FAFCFF + near-black #060606).
 HOOK_BOX = (250, 252, 255, 255)   # #FAFCFF near-white — the hook bar
 HOOK_TEXT = (6, 6, 6, 255)        # #060606 near-black — hook text on the bar
-HOOK_POS = 0.5                    # vertical centre of the hook block, as a fraction of frame height
+HOOK_POS = 0.34                   # hook block centre at ~2/3 height (upper third), fraction from top
 HOOK_MAX_LINES = 2                # hooks shrink to fit this many lines — keeps them punchy, never long
 
 # Creative knobs — tunable in settings.yaml under `captions:`. NOTE on size: video
