@@ -28,10 +28,14 @@ FONT_CANDIDATES = (
 )
 # Hook title font — brand display face (Poppins), bundled as TTF (Pillow can't read woff2).
 # Falls back to the heavy display fonts above, then Pillow default.
+HELVETICA_TTC = "/System/Library/Fonts/Helvetica.ttc"   # macOS Helvetica collection (index 1 = Bold)
 HOOK_FONT_CANDIDATES = (
-    str(ROOT / "assets" / "fonts" / "Poppins-ExtraBold.ttf"),
+    HELVETICA_TTC,                                          # clean Helvetica Bold (operator's pick)
     str(ROOT / "assets" / "fonts" / "Poppins-Bold.ttf"),
 ) + FONT_CANDIDATES
+# Captions use the same Helvetica Bold for a cohesive look.
+CAPTION_FONT_CANDIDATES = (HELVETICA_TTC,
+                           str(ROOT / "assets" / "fonts" / "Poppins-Bold.ttf")) + FONT_CANDIDATES
 MAX_WORDS = 3
 MIN_DWELL = 0.4          # seconds a chunk stays on screen, minimum
 FPS = 15
@@ -140,13 +144,26 @@ def _load_font(size: int, font_path: str | None):
     from PIL import ImageFont
     for p in ([font_path] if font_path else []) + list(FONT_CANDIDATES):
         if p and Path(p).exists():
+            if p.endswith(".ttc"):                    # font collection (e.g. Helvetica): index 1 = Bold
+                try:
+                    return ImageFont.truetype(p, size, index=1)
+                except Exception:  # noqa: BLE001
+                    pass
             return ImageFont.truetype(p, size)
     return ImageFont.load_default()
 
 
 def _hook_font_path() -> str | None:
-    """First existing hook font (brand Poppins, then heavy display fallbacks). None → default."""
+    """First existing hook font (Helvetica Bold, then Poppins/display fallbacks). None → default."""
     for p in HOOK_FONT_CANDIDATES:
+        if Path(p).exists():
+            return p
+    return None
+
+
+def _caption_font_path() -> str | None:
+    """First existing caption font (Helvetica Bold, then fallbacks)."""
+    for p in CAPTION_FONT_CANDIDATES:
         if Path(p).exists():
             return p
     return None
@@ -181,9 +198,9 @@ def _draw_chunk(draw, chunk: Chunk, t: float, w: int, y: int, max_size: int,
     total = sum(widths) + gap * (len(chunk.words) - 1)
     x = (w - total) // 2
     for word, ww in zip(chunk.words, widths):
-        active = word.start <= t < word.end
+        # All words yellow (operator's pick) — no per-word focus highlight.
         draw.text((x, y), _case(word.text, case), font=font, anchor="la",
-                  fill=ACTIVE if active else IDLE, stroke_width=stroke, stroke_fill=OUTLINE)
+                  fill=ACTIVE, stroke_width=stroke, stroke_fill=OUTLINE)
         x += ww + gap
 
 
@@ -210,7 +227,9 @@ def _draw_title(draw, text: str, size: int, max_w: int, w: int, h: int,
     """Hook title: each wrapped line on its own highlight box, the whole block centred vertically
     at `pos_frac`. Shrinks the font until the text fits in `max_lines` (keeps hooks punchy, never
     long). box=False → outline-only text (the old look)."""
-    tstroke = stroke if not box else max(2, stroke // 3)
+    # Boxed hook: NO outline — the white box carries the contrast, so a stroke just makes the
+    # text look chunky/heavy at this size. Outline-only mode (no box) still needs the fat stroke.
+    tstroke = 0 if box else stroke
     # Shrink-to-fit: find the largest size (down to 62% of target) that fits in max_lines.
     font = _load_font(size, font_path)
     lines = _wrap_lines(draw, text, font, max_w, tstroke)
@@ -254,8 +273,10 @@ def render_overlay(chunks: list[Chunk], duration: float, out_dir: Path, *,
     n_frames = max(1, math.ceil(duration * fps))
     title_dur = cfg["hook_hold_sec"]
     cap_max = int(w * cfg["size_pct"])
-    title_size = int(w * 0.085)                # bigger — dead-centre hero hook
-    hook_font = _hook_font_path()              # brand Poppins (falls back to display fonts)
+    cap_stroke = max(3, w // 300)              # thin outline on captions — they're not in a box
+    title_size = int(w * 0.085)                # dead-centre hero hook
+    hook_font = _hook_font_path()              # Helvetica Bold (falls back to Poppins/display)
+    cap_font = _caption_font_path()            # Helvetica Bold captions
     for f in range(n_frames):
         t = f / fps
         img = Image.new("RGBA", size, (0, 0, 0, 0))
@@ -272,7 +293,7 @@ def render_overlay(chunks: list[Chunk], duration: float, out_dir: Path, *,
                         max_lines=cfg["hook_max_lines"])
         ch = next((c for c in chunks if c.start <= t < c.end), None)
         if ch:
-            _draw_chunk(d, ch, t, w, int(h * 0.70), cap_max, font_path, stroke, cfg["case"])
+            _draw_chunk(d, ch, t, w, int(h * 0.72), cap_max, cap_font, cap_stroke, cfg["case"])
         img.save(out_dir / f"{f:05d}.png")
     return n_frames
 

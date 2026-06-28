@@ -135,8 +135,8 @@ reframe:
 # hook_hold_sec: how long the burned hook title stays on screen, minimum.
 captions:
   case: lower
-  size_pct: 10
-  hook_hold_sec: 7
+  size_pct: 6.5
+  hook_hold_sec: 3.7
 
 # --- Optimize (the double-down actuator) -------------------------------------
 # Each cycle, winners (top-quantile virality) get sourced harder, losers throttled.
