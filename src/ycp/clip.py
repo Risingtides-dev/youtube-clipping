@@ -244,7 +244,7 @@ def run(url: str, max_clips: int = 6, lane: str = "owned",
         gameplay: Path | None = None, source_video_id: str | None = None,
         angle: str = "", window_sec: int | None = None, start_sec: int = 0,
         captions_on: bool = True, exact: tuple[float, float] | None = None,
-        db_path: Path | None = None) -> list[dict]:
+        force: bool = False, db_path: Path | None = None) -> list[dict]:
     """Full pipeline: url -> ranked vertical clips with hook title + captions, registered for QC.
 
     Every clip gets the DeepSeek hook title (the highest-leverage lever) and opus-style
@@ -264,6 +264,9 @@ def run(url: str, max_clips: int = 6, lane: str = "owned",
         start_sec = int(exact[0])
         window_sec = max(1, int(round(exact[1] - exact[0])))
         vid_hash = hashlib.sha1(f"{url}@{exact}@{title}@{os.urandom(4).hex()}".encode()).hexdigest()[:8]
+    elif force:
+        # FORCE — a fresh cut even if we made one here before (unique id, no dedup gate).
+        vid_hash = hashlib.sha1(f"{url}@{start_sec}@{os.urandom(4).hex()}".encode()).hexdigest()[:8]
     else:
         # Include the start offset so two DIFFERENT moments cut from the SAME video get distinct
         # ids (else clip_id collides and the second silently overwrites the first).

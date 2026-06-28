@@ -108,7 +108,7 @@ def cut(job: dict) -> None:
     try:
         created = clip_mod.run(
             job["url"], max_clips=1, source_creator=job["creator"], channel=CHANNEL,
-            hook_cta=True, captions_on=True,
+            hook_cta=True, captions_on=True, force=True,   # never dedup-skip — always cut fresh
             start_sec=int(job["start_min"] * 60), window_sec=int(job["window_min"] * 60))
     except Exception as e:  # noqa: BLE001 — one bad source must not kill the mission
         log(f"✗ {job['creator']} @ {job['start_min']:.1f}m: {e}")
@@ -131,14 +131,26 @@ def main() -> int:
     log(f"mission: {TARGET} {CHANNEL} clips · {len(srcs)} on-topic sources "
         f"(filtered from the full queue) · {CAP} parallel")
     log("  sources: " + ", ".join(f"{s['creator']}" for s in srcs[:12]))
-    pool = ThreadPoolExecutor(max_workers=CAP)
+    # Round-robin by creator so consecutive clips ALTERNATE voices (no 6-in-a-row Primeagen) and
+    # the VC/founder pods get represented, not just whoever sits at the top of the queue.
+    from collections import defaultdict, deque
+    by_creator: dict[str, deque] = defaultdict(deque)
     seen_urls = set()
-    for src in srcs:
+    for s in srcs:
+        if s["url"] not in seen_urls:
+            seen_urls.add(s["url"])
+            by_creator[s["creator"]].append(s)
+    order: list[dict] = []
+    queues = list(by_creator.values())
+    while any(queues):
+        for q in queues:
+            if q:
+                order.append(q.popleft())
+
+    pool = ThreadPoolExecutor(max_workers=CAP)
+    for src in order:                       # already interleaved across creators
         if _stop.is_set():
             break
-        if src["url"] in seen_urls:
-            continue
-        seen_urls.add(src["url"])
         for job in jobs_for(src):
             if _stop.is_set():
                 break
