@@ -116,8 +116,12 @@ def cut(job: dict) -> None:
         return
     with _lock:
         for c in created:
-            _made += 1
-            log(f"✓ [{_made}/{TARGET}] {job['creator']}  {Path(c['file']).name}  “{c.get('post_title') or ''}”")
+            passed = "/unreviewed/" in c["file"]      # gate-passed clips land here; rejects → unusable/
+            if passed:
+                _made += 1
+                log(f"✓ [{_made}/{TARGET}] {job['creator']}  {Path(c['file']).name}  “{c.get('post_title') or ''}”")
+            else:
+                log(f"✗ gate rejected → unusable: {job['creator']}  “{c.get('post_title') or ''}”")
         if _made >= TARGET:
             _stop.set()
 
