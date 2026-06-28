@@ -274,6 +274,27 @@ niches:
         handle: "@a16z"
         lane: owned
         notes: "DIFFUSION. Andreessen (roster) + a rotating founder bench; builder-optimist counterweight to the doom lane. Low risk."
+      # ── FOUNDERS & VCs — the core of the channel: founders + investors talking shop ──
+      - name: "All-In Podcast"
+        handle: "@allin"
+        lane: owned
+        notes: "FOUNDERS/VCs. Chamath, Sacks, Friedberg, Calacanis — the biggest VC pod. Hot takes on markets/AI/politics; pre-tested debate hooks."
+      - name: "Twenty Minute VC"
+        handle: "@20VC"
+        lane: owned
+        notes: "FOUNDERS/VCs. Harry Stebbings interviews top founders + VCs. Dense investing/operating bold-claims, clip-tolerant."
+      - name: "This Week in Startups"
+        handle: "@thisweekin"
+        lane: owned
+        notes: "FOUNDERS/VCs. Jason Calacanis + guests on building/funding startups. Talking-head, high clip yield."
+      - name: "Acquired"
+        handle: "@AcquiredFM"
+        lane: owned
+        notes: "FOUNDERS/VCs. Deep company/founder stories (Nvidia, OpenAI). Quotable 'how they actually won' moments."
+      - name: "My First Million"
+        handle: "@MyFirstMillionPod"
+        lane: owned
+        notes: "FOUNDERS/VCs. Shaan + Sam on business ideas/founder playbooks. Punchy money hooks, clip-friendly."
       # ── MEDIUM Content-ID risk — use for the strongest quotes, transform HARD, keep <25s ──
       - name: "TED"
         handle: "@TED"

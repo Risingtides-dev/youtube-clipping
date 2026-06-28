@@ -58,16 +58,17 @@ def _on_topic(src: dict, roster: set[str]) -> bool:
     cr = src["creator"]
     if cr not in roster:
         return False
+    if cr in FOUNDER_VC:              # founder/VC pods are on-topic by definition (business, not just AI)
+        return True
     if cr in BROAD:
         return any(k in (src["title"] or "").lower() for k in AI_TERMS)
     return True
 LOG = ROOT / "data" / "clips" / ".make-clips.log"
 PEAKS_PER_SOURCE = 3
 FALLBACK_WINDOW_MIN = 8                              # no heatmap → scan the first 8 min (faster)
-# Short-form AI-news creators: tiny videos = fast download+transcribe = clips land in ~2 min.
-# Do these FIRST so progress is visible immediately, before the long 2-hour podcasts.
-SHORT_FORM = {"Matthew Berman", "Wes Roth", "AI Explained", "bycloud", "Theo (t3.gg)",
-              "ThePrimeagen"}
+# This channel is FOUNDERS & VCs — prioritize those sources first.
+FOUNDER_VC = {"All-In Podcast", "Twenty Minute VC", "This Week in Startups", "Acquired",
+              "My First Million", "BG2 Pod", "No Priors", "a16z", "Y Combinator"}
 
 _lock = threading.Lock()
 _made = 0
@@ -124,7 +125,7 @@ def cut(job: dict) -> None:
 def main() -> int:
     roster = _roster()
     srcs = [s for s in source_queue(limit=200) if _on_topic(s, roster)]
-    srcs.sort(key=lambda s: s["creator"] not in SHORT_FORM)   # short-form AI-news first (fast wins)
+    srcs.sort(key=lambda s: s["creator"] not in FOUNDER_VC)   # founders & VCs first
     if not srcs:
         log(f"no on-topic ({CHANNEL}) sources in the queue — run `ycp source` first.")
         return 1
