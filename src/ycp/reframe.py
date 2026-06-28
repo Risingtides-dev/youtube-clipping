@@ -258,10 +258,11 @@ def face_coverage(video: Path, start: float, end: float, n: int = 6) -> float:
 
 
 def first_face_time(video: Path, start: float, end: float, max_skip: float = 4.0,
-                    n: int = 9) -> float:
-    """First time in [start, start+max_skip] where a speaker-sized face appears, so the caller can
-    trim a speaker-less opening and start the clip ON the speaker. Returns `start` if a face is
-    already there at the start, or if none appears within max_skip (then the coverage gate decides)."""
+                    n: int = 9, min_face_frac: float = 0.06) -> float:
+    """First time in [start, start+max_skip] where a face at least `min_face_frac` of the frame
+    width appears — so the caller can trim a speaker-less opening and start ON the speaker. A larger
+    min_face_frac skips WIDE establishing shots (tiny edge face) and waits for the close-up cut.
+    Returns `start` if such a face is already there, or if none appears within max_skip."""
     try:
         import cv2
     except ImportError:
@@ -273,7 +274,7 @@ def first_face_time(video: Path, start: float, end: float, max_skip: float = 4.0
     width = cap.get(cv2.CAP_PROP_FRAME_WIDTH) or 1.0
     height = cap.get(cv2.CAP_PROP_FRAME_HEIGHT) or 1.0
     det.setInputSize((int(width), int(height)))
-    min_px = max(40, int(0.06 * width))
+    min_px = max(40, int(min_face_frac * width))
     hi = min(end, start + max_skip)
     for k in range(n):
         t = start + (hi - start) * k / max(1, n - 1)

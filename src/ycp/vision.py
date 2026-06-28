@@ -14,8 +14,11 @@ hooks.py / transcribe.py). qc_screen() is an optional visual-compliance pass tha
 from __future__ import annotations
 
 import json
+import subprocess
+import tempfile
 import time
 from dataclasses import dataclass
+from pathlib import Path
 
 from .config import env, settings
 
@@ -205,6 +208,69 @@ def review_clip(video_path, model: str | None = None) -> dict:
         }
     except Exception:  # noqa: BLE001
         return {"usable": True, "reviewed": False, "issues": []}
+
+
+_GATE_PROMPT = """You are the FINAL visual gate for a faceless TALKING-HEAD short-form channel.
+This image is a CONTACT SHEET: frames sampled every ~3 seconds across ONE vertical clip, in order
+left-to-right, top-to-bottom. Ignore any fully black/blank cells at the end.
+
+PASS only if essentially EVERY non-blank frame shows a real PERSON, well framed as the clear subject
+(head-and-shoulders / upper body), actually on camera. REJECT the ENTIRE clip if ANY frame shows:
+- no person / an empty room, set, desk, chairs / a wall or background as the subject
+- a screen-share, code, terminal, slide, chart, graph, diagram, title card, logo, or b-roll
+- the speaker tiny/far in a wide shot
+- a face cut off, shoved to the edge, or the crop centred off the person
+The FIRST frame (top-left) MUST open on the person — if frame 1 is a wall / empty set, REJECT.
+
+Be strict: when in doubt, REJECT. Return ONLY JSON:
+{"usable": <bool>, "bad_frames": [<1-based indices>], "reason": "<short why>"}"""
+
+
+def _contact_sheet(video_path, out_dir, every: float = 2.5, cols: int = 4, rows: int = 4,
+                   cell_w: int = 360) -> Path | None:
+    """Tile frames into one contact-sheet PNG — the whole clip in one image. The select expr FORCES
+    the true first frame (t=0) into cell 1 (`isnan(prev_selected_t)`) then samples every `every`s, so
+    the all-important OPENING is always reviewed (a plain fps filter skips ~the first 1.5s — exactly
+    where empty-room openings hide). None on failure."""
+    sheet = Path(out_dir) / "sheet.png"
+    vf = (f"select='isnan(prev_selected_t)+gte(t-prev_selected_t\\,{every})',"
+          f"scale={cell_w}:-1,tile={cols}x{rows}")
+    try:
+        subprocess.run(["ffmpeg", "-y", "-i", str(video_path), "-vf", vf, "-frames:v", "1",
+                        "-fps_mode", "passthrough", str(sheet)], capture_output=True, timeout=120)
+    except (OSError, subprocess.SubprocessError):
+        return None
+    return sheet if sheet.exists() else None
+
+
+def gate(video_path, model: str | None = None) -> dict:
+    """THE gate: a video-capable model visually signs off on the WHOLE clip (a contact sheet of
+    every ~3s) before it can reach the review folder. FAILS CLOSED — vision off, contact-sheet
+    failure, model error, or anything short of an explicit approval ⇒ NOT usable. Nothing reaches
+    the human pile without a visual pass. Returns {usable, reviewed, reason, bad_frames}."""
+    if not enabled():
+        return {"usable": False, "reviewed": False, "reason": "vision gate off — fail closed",
+                "bad_frames": []}
+    with tempfile.TemporaryDirectory(prefix="ycp-gate-") as tmp:
+        sheet = _contact_sheet(video_path, tmp)
+        if sheet is None:
+            return {"usable": False, "reviewed": False, "reason": "contact sheet failed — fail closed",
+                    "bad_frames": []}
+        try:
+            from google.genai import types
+            client = _client()
+            resp = client.models.generate_content(
+                model=model or _cfg().get("model", DEFAULT_MODEL),
+                contents=[types.Part.from_bytes(data=sheet.read_bytes(), mime_type="image/png"),
+                          _GATE_PROMPT],
+                config=types.GenerateContentConfig(response_mime_type="application/json"),
+            )
+            data = json.loads(resp.text)
+        except Exception as e:  # noqa: BLE001
+            return {"usable": False, "reviewed": False, "reason": f"gate error — fail closed: {e}",
+                    "bad_frames": []}
+    return {"usable": bool(data.get("usable", False)), "reviewed": True,
+            "reason": str(data.get("reason", "")), "bad_frames": list(data.get("bad_frames") or [])}
 
 
 def qc_screen(video_path, model: str | None = None) -> dict:

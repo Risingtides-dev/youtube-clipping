@@ -212,8 +212,10 @@ def _trim_to_speaker(video: Path, cand: Candidate, segments: list[Segment]) -> C
     would push the clip under MIN_CLIP_SEC."""
     if settings().get("reframe", {}).get("mode", "face") != "face":
         return cand
-    ft = reframe.first_face_time(video, cand.start, cand.end)
-    if ft - cand.start > 1.0 and cand.end - ft >= MIN_CLIP_SEC:
+    # Require a CLOSE face (≥12% of width) so we skip the wide establishing shot — a tiny speaker
+    # on the edge is what let clips open on the room/wall. Look up to 6s in for the close-up cut.
+    ft = reframe.first_face_time(video, cand.start, cand.end, max_skip=6.0, min_face_frac=0.12)
+    if ft - cand.start > 0.3 and cand.end - ft >= MIN_CLIP_SEC:
         return Candidate(round(ft, 2), cand.end, _window_text(segments, ft, cand.end), cand.score)
     return cand
 
@@ -342,10 +344,12 @@ def run(url: str, max_clips: int = 6, lane: str = "owned",
                 # usable → unreviewed/ (for human review); not usable → unusable/ (auto-reject,
                 # so charts/wide-tiny/cut-off clips never reach the human queue). Fails OPEN
                 # (usable) when Gemini is unavailable, so it can't silently swallow everything.
-                # Refinements (exact) are operator-requested → always go to unreviewed for review,
-                # never auto-rejected. Fresh cuts still pass the gate.
-                review = {"usable": True, "reviewed": False} if exact else vision.review_clip(cur)
-                usable = review.get("usable", True)
+                # THE GATE: Gemini visually signs off on the WHOLE clip (contact sheet of every ~3s)
+                # before it can reach the human pile. FAILS CLOSED — no explicit pass ⇒ unusable.
+                # Runs on every clip including refinements; an empty-room/wall opening is junk either
+                # way. This is the hard rule: nothing hits unreviewed/ without a visual sign-off.
+                review = vision.gate(cur)
+                usable = review.get("usable", False)   # fail closed — no explicit pass ⇒ rejected
                 status = "pending_qc" if usable else "rejected"
                 out = CLIPS_DIR / ("unreviewed" if usable else "unusable") / f"{variant_id}.mp4"
                 out.parent.mkdir(parents=True, exist_ok=True)
