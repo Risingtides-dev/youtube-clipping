@@ -68,6 +68,38 @@ def _sface():
     return rec
 
 
+HOSTS_DIR = ROOT / "assets" / "hosts"
+_HOST_EMB_CACHE: list = []
+
+
+def _host_embeddings() -> list:
+    """SFace embeddings of known interviewers (one face image each in assets/hosts/). identity-lock
+    excludes these so it follows the GUEST, not the host. Empty list if none/cv2 unavailable."""
+    if _HOST_EMB_CACHE:
+        return _HOST_EMB_CACHE[0]
+    embs: list = []
+    det, rec = _yunet(), _sface()
+    if det is not None and rec is not None and HOSTS_DIR.exists():
+        import cv2
+        det2 = cv2.FaceDetectorYN.create(str(YUNET_MODEL), "", (320, 320), score_threshold=0.6)
+        for img_path in sorted(HOSTS_DIR.glob("*")):
+            if img_path.suffix.lower() not in (".jpg", ".jpeg", ".png"):
+                continue
+            frame = cv2.imread(str(img_path))
+            if frame is None:
+                continue
+            det2.setInputSize((frame.shape[1], frame.shape[0]))
+            _, faces = det2.detect(frame)
+            if faces is not None and len(faces):
+                f = max(faces, key=lambda r: float(r[2]) * float(r[3]))
+                try:
+                    embs.append(rec.feature(rec.alignCrop(frame, f.reshape(1, -1))))
+                except Exception:  # noqa: BLE001
+                    pass
+    _HOST_EMB_CACHE.append(embs)
+    return embs
+
+
 def _identity_lock_on() -> bool:
     try:
         from .config import settings
@@ -85,9 +117,12 @@ def _cosine(a, b) -> float:
 
 
 def _dominant_track(records: list[tuple[float, float, object]],
-                    sim_thresh: float = IDENTITY_SIM) -> list[tuple[float, float]]:
+                    sim_thresh: float = IDENTITY_SIM,
+                    exclude_embs: list | None = None) -> list[tuple[float, float]]:
     """records = [(t, center_x_frac, embedding)]. Cluster by face identity (cosine), return the
-    appearances [(t, x_frac)] of the MOST-PRESENT identity — the person being featured. Pure
+    appearances [(t, x_frac)] of the MOST-PRESENT identity — the person being featured. If
+    `exclude_embs` is given (known interviewers/hosts), clusters matching a host are dropped so
+    we follow the GUEST, not the host. Falls back to all clusters if every face is a host. Pure
     (numpy cosine), so it unit-tests without cv2."""
     clusters: list[dict] = []
     for t, cx, emb in records:
@@ -102,7 +137,12 @@ def _dominant_track(records: list[tuple[float, float, object]],
             clusters.append({"cent": emb, "apps": [(t, cx)]})
     if not clusters:
         return []
-    return sorted(max(clusters, key=lambda c: len(c["apps"]))["apps"])
+    pool = clusters
+    if exclude_embs:
+        guests = [c for c in clusters
+                  if not any(_cosine(c["cent"], h) >= sim_thresh for h in exclude_embs)]
+        pool = guests or clusters       # if everyone matches a host, don't break — keep all
+    return sorted(max(pool, key=lambda c: len(c["apps"]))["apps"])
 
 
 def _probe_dims(video: Path) -> tuple[int, int]:
@@ -181,7 +221,7 @@ def face_track(video: Path, sample_fps: float = 3.0, min_face_frac: float = 0.06
     fh_med = statistics.median([h for h, _ in geoms]) if geoms else 0.0
     y_med = statistics.median([y for _, y in geoms]) if geoms else 0.5
     if rec is not None and records:
-        return _dominant_track(records), sampled, fh_med, y_med
+        return _dominant_track(records, exclude_embs=_host_embeddings()), sampled, fh_med, y_med
     return track, sampled, fh_med, y_med
 
 
