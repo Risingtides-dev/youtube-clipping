@@ -20,6 +20,12 @@ def test_build_chunks_caps_words_and_is_non_overlapping():
     assert all(chunks[i].end <= chunks[i + 1].start + 1e-6 for i in range(len(chunks) - 1))
 
 
+def test_build_chunks_breaks_on_punctuation():
+    # "we won, today okay." -> phrase boundaries: ["we won,"] ["today okay."] not a blind 3-slice
+    chunks = captions.build_chunks([Segment(0.0, 4.0, "we won, today okay.")], max_words=3)
+    assert [c.text for c in chunks] == ["we won,", "today okay."]
+
+
 def test_build_chunks_enforces_min_dwell():
     chunks = captions.build_chunks([Segment(0.0, 0.1, "hi there")], max_words=3, min_dwell=0.5)
     assert chunks and chunks[0].end - chunks[0].start >= 0.5
