@@ -19,9 +19,10 @@ cd "$(dirname "$0")/.."
 ROOT="$(pwd)"
 WATCH="$ROOT/data/clips/unusable"
 LEDGER="$ROOT/data/clips/.refine-ledger"
-LOCK="$ROOT/data/clips/.refine-lock"
+RUNNING="$ROOT/data/clips/.refining"      # one marker file per in-flight agent
 LOG="$ROOT/data/clips/.refine-watch.log"
-mkdir -p "$WATCH"; touch "$LEDGER"
+CAP="${REFINE_CAP:-3}"                     # max agents refining at once (rate-limit guard)
+mkdir -p "$WATCH" "$RUNNING"; touch "$LEDGER"
 command -v fswatch >/dev/null || { echo "✗ fswatch not found (brew install fswatch)"; exit 1; }
 command -v claude  >/dev/null || { echo "✗ claude CLI not found"; exit 1; }
 
@@ -61,22 +62,32 @@ refine() {            # clips with a real note, not yet attempted → run the ag
   pending=$(.venv/bin/python -m ycp notes 2>/dev/null | sed -n 's/^  \([^ ]*\)  →.*/\1/p' \
             | grep -vxF -f "$LEDGER" || true)
   [ -z "$pending" ] && return 0
-  mkdir "$LOCK" 2>/dev/null || { echo "$(date '+%T') busy, will retry" >>"$LOG"; return 0; }
-  trap 'rmdir "$LOCK" 2>/dev/null || true' RETURN
-  echo "$(date '+%T') refining: $(echo "$pending" | tr '\n' ' ')" | tee -a "$LOG"
-  claude -p "Refinement loop for the AI-news clip factory at $ROOT (cwd). The operator dropped
-broken clip(s) into data/clips/unusable/ with a NOTE saying what's wrong. Run
-'.venv/bin/python -m ycp notes' to read them, then fix EACH of these clip ids:
-$pending
-Per clip: (1) read its note (why it's bad); (2) delete the old clip + its .note.txt sidecar +
-its DB row; (3) re-source a clip where the SUBJECT is a close-up talking head actually saying
-the point (use the note; WebSearch / 'ycp goldmine <url>' to find the moment; NEVER Joe
-Rogan/JRE); (4) re-cut: .venv/bin/python -m ycp clip \"<url>\" --max 1 --start <MIN>
---window <~1.2> --creator \"<who>\" --channel ai-frontier --title \"<hook>\" (auto-frames,
-trims, QC-gates); (5) confirm it routed to data/clips/unreviewed/. Max 2 attempts per clip.
-Be concise." --dangerously-skip-permissions </dev/null >>"$LOG" 2>&1 || echo "$(date '+%T') agent error" >>"$LOG"
-  echo "$pending" >> "$LEDGER"     # mark attempted so failures don't loop
-  echo "$(date '+%T') done" | tee -a "$LOG"
+  for cid in $pending; do
+    [ -f "$RUNNING/$cid" ] && continue                       # already has an agent
+    while [ "$(find "$RUNNING" -maxdepth 1 -type f | wc -l | tr -d ' ')" -ge "$CAP" ]; do
+      sleep 3                                                # at the cap — wait for a slot
+    done
+    spawn_one "$cid"
+  done
+}
+
+spawn_one() {            # launch ONE background agent for a single clip (parallel up to CAP)
+  local cid="$1"
+  touch "$RUNNING/$cid"
+  echo "$(date '+%T') refining: $cid" | tee -a "$LOG"
+  ( claude -p "Refine ONE broken AI-news clip ($cid) for the factory at $ROOT (cwd). Read its note
+with '.venv/bin/python -m ycp notes'. Then: (1) the note says why it's bad; (2) delete the old
+clip + its .note.txt sidecar + its DB row; (3) re-source a clip where the SUBJECT is a close-up
+talking head actually saying the point (use the note; WebSearch / 'ycp goldmine <url>' for the
+moment; NEVER Joe Rogan/JRE); (4) re-cut: .venv/bin/python -m ycp clip \"<url>\" --max 1
+--start <MIN> --window <~1.2> --creator \"<who>\" --channel ai-frontier --title \"<hook>\"
+(auto-frames/trims/QC-gates); (5) confirm it routed to data/clips/unreviewed/. Max 2 attempts.
+Be concise." --dangerously-skip-permissions </dev/null >>"$LOG" 2>&1 \
+        || echo "$(date '+%T') agent error $cid" >>"$LOG"
+    echo "$cid" >> "$LEDGER"            # mark attempted so failures don't loop
+    rm -f "$RUNNING/$cid"
+    echo "$(date '+%T') done $cid" >>"$LOG"
+  ) &
 }
 
 echo "👀 watching $WATCH — drop ONE clip, note it in TextEdit, Cmd+S.  (Ctrl-C to stop)  log: $LOG"

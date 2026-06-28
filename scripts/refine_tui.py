@@ -19,11 +19,10 @@ from rich.text import Text
 ROOT = Path(__file__).resolve().parent.parent
 CLIPS = ROOT / "data" / "clips"
 LOG = CLIPS / ".refine-watch.log"
-LOCK = CLIPS / ".refine-lock"
+RUNNING = CLIPS / ".refining"          # one marker file per in-flight agent
 LEDGER = CLIPS / ".refine-ledger"
 MAGENTA, YELLOW, DIM = "#E100C3", "#FFDE00", "grey50"
-STAGES = (("queued", "grey50"), ("re-sourcing", "cyan"), ("cutting", YELLOW),
-          ("QC gate", "magenta"), ("done", "green"))
+CAP = int(__import__("os").environ.get("REFINE_CAP", "3"))
 SPIN = "⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏"
 
 
@@ -36,19 +35,6 @@ def tail(path: Path, n: int) -> list[str]:
     if not path.exists():
         return []
     return [ln for ln in path.read_text(errors="ignore").splitlines() if ln.strip()][-n:]
-
-
-def stage_from(line: str) -> int:
-    low = line.lower()
-    if "produced" in low or "→ unreviewed" in low or "done" in low:
-        return 4
-    if "gemini" in low or "qc" in low or "reject" in low:
-        return 3
-    if "ycp clip" in low or "download" in low or "whisper" in low or "cutting" in low:
-        return 2
-    if "websearch" in low or "goldmine" in low or "re-sourc" in low or "refining" in low:
-        return 1
-    return 0
 
 
 def header(active: bool) -> Panel:
@@ -72,24 +58,24 @@ def pipeline(c: dict[str, int]) -> Panel:
     return Panel(rows, title="[white]pipeline", title_align="left", border_style=DIM, padding=(1, 1))
 
 
-def now_refining(active: bool, lines: list[str], frame: int) -> Panel:
-    if not active:
+def refining_markers() -> list[Path]:
+    return sorted(RUNNING.glob("*"), key=lambda p: p.stat().st_mtime) if RUNNING.is_dir() else []
+
+
+def now_refining(markers: list[Path], frame: int) -> Panel:
+    if not markers:
         body = Align.center(Text("idle — drop a clip in unusable/ to start", style=DIM), vertical="middle")
-        return Panel(body, title="[white]now refining", title_align="left", border_style=DIM, height=5)
-    clip = next((ln.split("refining:", 1)[1].strip() for ln in reversed(lines) if "refining:" in ln), "?")
-    elapsed = int(time.time() - LOCK.stat().st_mtime) if LOCK.exists() else 0
-    si = max((stage_from(ln) for ln in lines[-6:]), default=0)
-    spin = SPIN[frame % len(SPIN)]
-    line = Text(f" {spin} ", style=f"bold {MAGENTA}")
-    line.append(f"{clip}", style="bold white")
-    line.append(f"   {elapsed // 60:d}:{elapsed % 60:02d}\n\n ", style=DIM)
-    for i, (name, col) in enumerate(STAGES):
-        done, cur = i < si, i == si
-        mark = "●" if done else ("◉" if cur else "○")
-        style = ("green" if done else (f"bold {col}" if cur else DIM))
-        line.append(f"{mark} {name}", style=style)
-        line.append("  →  " if i < len(STAGES) - 1 else "", style=DIM)
-    return Panel(line, title="[white]now refining", title_align="left", border_style=MAGENTA, height=5)
+        return Panel(body, title="[white]now refining", title_align="left", border_style=DIM, height=4)
+    t = Text()
+    for i, m in enumerate(markers[:6]):
+        el = int(time.time() - m.stat().st_mtime)
+        spin = SPIN[(frame + i * 2) % len(SPIN)]
+        t.append(f" {spin} ", style=f"bold {MAGENTA}")
+        t.append(f"{m.name:<14}", style="bold white")
+        t.append(f"  {el // 60:d}:{el % 60:02d}  ", style=DIM)
+        t.append("re-sourcing → cutting → QC\n", style=DIM)
+    title = f"[white]now refining · [bold {MAGENTA}]{len(markers)}[/] in parallel (cap {CAP})"
+    return Panel(t, title=title, title_align="left", border_style=MAGENTA, height=min(8, 2 + len(markers)))
 
 
 def activity(lines: list[str]) -> Panel:
@@ -112,8 +98,8 @@ def footer() -> Text:
 
 def render(frame: int):
     lines = tail(LOG, 40)
-    active = LOCK.exists()
-    return Group(header(active), pipeline(counts()), now_refining(active, lines, frame),
+    markers = refining_markers()
+    return Group(header(bool(markers)), pipeline(counts()), now_refining(markers, frame),
                  activity(lines), footer())
 
 
