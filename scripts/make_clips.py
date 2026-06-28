@@ -66,6 +66,8 @@ def _on_topic(src: dict, roster: set[str]) -> bool:
 LOG = ROOT / "data" / "clips" / ".make-clips.log"
 PEAKS_PER_SOURCE = 3
 FALLBACK_WINDOW_MIN = 8                              # no heatmap → scan the first 8 min (faster)
+MAX_ROUNDS = 8                                       # loop the whole roster up to this many times to
+#                                                     hit TARGET approved (each round scans deeper)
 # This channel is FOUNDERS & VCs — prioritize those sources first.
 FOUNDER_VC = {"All-In Podcast", "Twenty Minute VC", "This Week in Startups", "Acquired",
               "My First Million", "BG2 Pod", "No Priors", "a16z", "Y Combinator"}
@@ -84,22 +86,25 @@ def log(msg: str) -> None:
     print(line, flush=True)
 
 
-def jobs_for(src: dict) -> list[dict]:
-    """A clip job per most-replayed peak (bounded window), or one first-N-min fallback job."""
+def jobs_for(src: dict, round_no: int = 0) -> list[dict]:
+    """Clip jobs for a source. Round 0 = the most-replayed heatmap peaks (best shot at a keeper);
+    later rounds scan progressively deeper slices of the SAME video, so re-looping for more approved
+    clips keeps finding fresh moments instead of re-cutting the same rejected one."""
     url, creator = src["url"], src["creator"]
-    try:
-        peaks, _ = goldmine.run(url, top=PEAKS_PER_SOURCE)
-    except Exception as e:  # noqa: BLE001
-        log(f"  heatmap failed for {creator}: {e}")
-        peaks = []
-    if peaks:
-        out = []
-        for pk in peaks:
-            start_min = max(0.0, (pk.start - 20) / 60.0)         # 20s of lead-in before the peak
-            out.append({"url": url, "creator": creator, "start_min": round(start_min, 2),
-                        "window_min": 3})
-        return out
-    return [{"url": url, "creator": creator, "start_min": 0.0, "window_min": FALLBACK_WINDOW_MIN}]
+    if round_no == 0:
+        try:
+            peaks, _ = goldmine.run(url, top=PEAKS_PER_SOURCE)
+        except Exception as e:  # noqa: BLE001
+            log(f"  heatmap failed for {creator}: {e}")
+            peaks = []
+        if peaks:
+            return [{"url": url, "creator": creator,
+                     "start_min": round(max(0.0, (pk.start - 20) / 60.0), 2), "window_min": 3}
+                    for pk in peaks]
+    # no heatmap (round 0) or a later loop → scan a fresh slice deeper into the source
+    start = round_no * FALLBACK_WINDOW_MIN
+    return [{"url": url, "creator": creator, "start_min": float(start),
+             "window_min": FALLBACK_WINDOW_MIN}]
 
 
 def cut(job: dict) -> None:
@@ -152,16 +157,29 @@ def main() -> int:
             if q:
                 order.append(q.popleft())
 
+    # LOOP until TARGET clips actually PASS the gate — not 20 attempts, 20 approved. Each round
+    # scans a fresh slice of every source, so rejects don't get re-cut identically. Capped so it
+    # can't run forever if a feed is genuinely dry.
+    from concurrent.futures import wait
     pool = ThreadPoolExecutor(max_workers=CAP)
-    for src in order:                       # already interleaved across creators
+    for rnd in range(MAX_ROUNDS):
         if _stop.is_set():
             break
-        for job in jobs_for(src):
+        log(f"── round {rnd + 1}/{MAX_ROUNDS} · {_made}/{TARGET} approved so far ──")
+        futures = []
+        for src in order:
             if _stop.is_set():
                 break
-            pool.submit(cut, job)
+            for job in jobs_for(src, rnd):
+                if _stop.is_set():
+                    break
+                futures.append(pool.submit(cut, job))
+        wait(futures)                       # let this round finish before deciding on another
+        if _made >= TARGET:
+            break
     pool.shutdown(wait=True)
-    log(f"done — {_made} clips in data/clips/unreviewed/")
+    log(f"done — {_made}/{TARGET} approved clips in data/clips/unreviewed/"
+        + ("" if _made >= TARGET else "  (sources ran dry before target)"))
     return 0
 
 
