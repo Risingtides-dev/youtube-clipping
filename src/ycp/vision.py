@@ -21,18 +21,45 @@ from .config import env, settings
 
 DEFAULT_MODEL = "gemini-3.5-flash"
 
-_MOMENT_PROMPT = """You are an expert short-form editor for faceless YouTube/TikTok clip channels.
+_MOMENT_PROMPT = """You are an expert short-form editor for a TALKING-HEAD clip channel.
 Watch this video and pick the {n} BEST standalone moments to cut as vertical Shorts.
 
-A great moment: hooks in the first 1-2 seconds, has a clear payoff or emotional/visual peak, is
-quotable, and stands alone without prior context. Prefer TIGHT 20-35s windows (the retention sweet
-spot — cut to the punch, no runway); never exceed 38s. Avoid intros, ad reads, dead air, and
-anything that needs setup.
+CRITICAL — the on-camera subject MUST be a PERSON (a speaker / talking head). For the WHOLE window
+you choose, a person must be clearly on screen as the main subject. REJECT and never pick windows
+that are slides, charts, graphs, screen-shares, code, diagrams, title cards, product shots, logos,
+or any b-roll where no person is the focus. A clip with no person on camera is unusable to us — if
+a great quote happens over a slide, pick a nearby window where the speaker is actually shown talking.
+
+A great moment also: hooks in the first 1-2 seconds, has a clear payoff or emotional/visual peak, is
+quotable, and stands alone. Prefer TIGHT 20-35s windows (the retention sweet spot); never exceed 38s.
+Avoid intros, ad reads, dead air, and anything that needs setup.
 
 Return ONLY JSON:
 {{"moments":[{{"start_sec": <number>, "end_sec": <number>, "score": <0-1 how viral>,
+"person_on_camera": <true|false — is a person the on-camera subject for the WHOLE window?>,
 "reason": "<one line: why this clips>"}}]}}
-Best first. Timestamps are seconds from the start of THIS video."""
+Only include moments where person_on_camera is true. Best first. Timestamps are seconds from the
+start of THIS video."""
+
+_REVIEW_PROMPT = """You are a STRICT quality-control reviewer for a faceless TALKING-HEAD clip
+channel. Watch this FINISHED vertical Short and decide if it is USABLE to post. Be harsh — when in
+doubt, reject. A clip is UNUSABLE if ANY of these is true:
+- SUBJECT IS NOT A PERSON: the shot is a slide, chart, graph, screen-share, code, diagram, title
+  card, product shot, logo, or b-roll for a meaningful part of the clip.
+- WIDE / TINY SPEAKER: the speaker is a small figure in a wide shot (e.g. a far stage shot) rather
+  than a head-and-shoulders / upper-body framing.
+- BAD FRAMING: the face is cut off, off to the edge, or the crop is centred on the background.
+- DOESN'T OPEN ON THE SPEAKER: the first ~1 second is an establishing/wide/title/slide shot, not
+  the person talking.
+- CUT OFF: the clip ends before the speaker finishes the key sentence/point (the thought is
+  incomplete or it stops mid-sentence).
+- WRONG SUBJECT: the framed person appears to be an interviewer/host reacting rather than the main
+  speaker delivering the point.
+
+Return ONLY JSON:
+{"usable": <bool>, "subject": "person"|"slide_or_chart"|"wide_tiny"|"b_roll"|"mixed",
+ "opens_on_speaker": <bool>, "complete_thought": <bool>, "well_framed": <bool>,
+ "issues": ["<short issue>", ...], "confidence": <0-1>}"""
 
 _QC_PROMPT = """You are a YouTube monetization compliance checker for a faceless clip channel.
 Watch this clip and flag anything that risks demonetization or a strike: copyrighted music,
@@ -95,6 +122,8 @@ def _parse_moments(raw) -> list[Moment]:
             continue
         if e <= s:
             continue
+        if m.get("person_on_camera") is False:   # Gemini says no person on screen → skip (charts/slides)
+            continue
         try:
             score = max(0.0, min(1.0, float(m.get("score", 0.5))))
         except (TypeError, ValueError):
@@ -128,6 +157,54 @@ def rank_moments(video_path, n: int = 6, model: str | None = None) -> list[Momen
         return moments[:n]
     except Exception:  # noqa: BLE001  (best-effort; caller falls back to the heuristic)
         return []
+
+
+def review_clip(video_path, model: str | None = None) -> dict:
+    """Strict QC of a FINISHED clip — Gemini watches the rendered Short and judges usability
+    (subject is a person, well framed, opens on the speaker, complete thought). Returns a dict
+    with 'usable' + the breakdown + 'issues'. Fails OPEN ({'usable': True, 'reviewed': False})
+    when Gemini is off/unavailable, so it never silently blocks when we can't actually check."""
+    if not enabled():
+        return {"usable": True, "reviewed": False, "issues": []}
+    try:
+        from google.genai import types
+        client = _client()
+        f = _upload_active(client, video_path)
+        if f is None:
+            return {"usable": True, "reviewed": False, "issues": []}
+        resp = client.models.generate_content(
+            model=model or _cfg().get("model", DEFAULT_MODEL),
+            contents=[f, _REVIEW_PROMPT],
+            config=types.GenerateContentConfig(response_mime_type="application/json"),
+        )
+        data = json.loads(resp.text)
+        try:
+            client.files.delete(name=f.name)
+        except Exception:  # noqa: BLE001
+            pass
+        subject = str(data.get("subject", ""))
+        opens = bool(data.get("opens_on_speaker", False))
+        complete = bool(data.get("complete_thought", False))
+        framed = bool(data.get("well_framed", False))
+        # CALIBRATED to the operator's manual sort (2026-06-27): usable = the subject is a person
+        # (or mostly-person) AND the clip opens on the speaker. This caught 7/7 of the hand-rejected
+        # clips (never ships a chart/slide/b-roll/wide-tiny/slow-open) while keeping the borderline
+        # ones the operator accepts. Cut-off + occasional wide moments are WARNINGS, not auto-rejects
+        # — Gemini's own strict "usable" flag threw out 13/16 good clips, so we don't trust it raw.
+        usable = subject in ("person", "mixed") and opens
+        warnings = list(data.get("issues") or [])
+        if not complete:
+            warnings.append("may cut off / incomplete thought")
+        if not framed:
+            warnings.append("framing could be tighter")
+        return {
+            "usable": usable, "reviewed": True, "subject": subject,
+            "opens_on_speaker": opens, "complete_thought": complete, "well_framed": framed,
+            "issues": [str(x) for x in warnings][:8],
+            "confidence": float(data.get("confidence", 0.0) or 0.0),
+        }
+    except Exception:  # noqa: BLE001
+        return {"usable": True, "reviewed": False, "issues": []}
 
 
 def qc_screen(video_path, model: str | None = None) -> dict:

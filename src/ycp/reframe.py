@@ -217,6 +217,38 @@ def face_coverage(video: Path, start: float, end: float, n: int = 6) -> float:
     return hits / seen if seen else 1.0
 
 
+def first_face_time(video: Path, start: float, end: float, max_skip: float = 4.0,
+                    n: int = 9) -> float:
+    """First time in [start, start+max_skip] where a speaker-sized face appears, so the caller can
+    trim a speaker-less opening and start the clip ON the speaker. Returns `start` if a face is
+    already there at the start, or if none appears within max_skip (then the coverage gate decides)."""
+    try:
+        import cv2
+    except ImportError:
+        return start
+    det = _yunet()
+    if det is None:
+        return start
+    cap = cv2.VideoCapture(str(video))
+    width = cap.get(cv2.CAP_PROP_FRAME_WIDTH) or 1.0
+    height = cap.get(cv2.CAP_PROP_FRAME_HEIGHT) or 1.0
+    det.setInputSize((int(width), int(height)))
+    min_px = max(40, int(0.06 * width))
+    hi = min(end, start + max_skip)
+    for k in range(n):
+        t = start + (hi - start) * k / max(1, n - 1)
+        cap.set(cv2.CAP_PROP_POS_MSEC, t * 1000.0)
+        ok, frame = cap.read()
+        if not ok:
+            continue
+        _, faces = det.detect(frame)
+        if any(f[2] >= min_px for f in (faces if faces is not None else [])):
+            cap.release()
+            return t                      # first frame the speaker is on camera
+    cap.release()
+    return start
+
+
 def _smooth(vals: list[float], win: int = 5) -> list[float]:
     out = []
     for i in range(len(vals)):

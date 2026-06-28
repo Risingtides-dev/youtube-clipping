@@ -167,17 +167,49 @@ def cut_vertical(video: Path, cand: Candidate, out_path: Path, workdir: Path) ->
 
 
 def _prefer_on_camera(video: Path, candidates: list[Candidate], keep: int,
-                      min_cov: float = 0.5) -> list[Candidate]:
-    """Keep the best `keep` candidates, preferring windows where the speaker is on camera.
-    Candidates are score-ranked; we promote the face-covered ones and only fall back to
-    slide/b-roll windows if nothing has a face (a pure-slide talk degrades gracefully)."""
-    if len(candidates) <= keep or settings().get("reframe", {}).get("mode", "face") != "face":
+                      floor: float = 0.34) -> list[Candidate]:
+    """Keep the best `keep` candidates whose window actually shows an adequately-sized speaker
+    (face_coverage ≥ floor). Drops slide/chart/b-roll AND wide-tiny-speaker windows. Returns []
+    when NOTHING is well-framed — better to skip a source than ship a clip with no real subject.
+    Order preserves virality ranking; only poorly-framed windows are filtered out."""
+    if settings().get("reframe", {}).get("mode", "face") != "face":
         return candidates[:keep]
-    covered, bare = [], []
-    for c in candidates:
-        (covered if reframe.face_coverage(video, c.start, c.end) >= min_cov else bare).append(c)
-    ranked = covered + bare          # face-present first, each group already score-ordered
-    return ranked[:keep]
+    good = [c for c in candidates if reframe.face_coverage(video, c.start, c.end) >= floor]
+    return good[:keep]
+
+
+def _extend_to_sentence(cand: Candidate, segments: list[Segment]) -> Candidate:
+    """If the clip currently ends MID-sentence, extend its end to the next sentence boundary
+    (so it doesn't cut off before the speaker finishes the point), capped at MAX_CLIP_SEC."""
+    prior = [s for s in segments if s.end <= cand.end + 0.3]
+    if prior and prior[-1].text.rstrip().endswith((".", "!", "?", '"', "…")):
+        return cand                                  # already ends on a complete thought
+    limit = cand.start + MAX_CLIP_SEC
+    new_end = cand.end
+    for s in segments:
+        if s.start < cand.end or s.start > limit:
+            if s.start > limit:
+                break
+            continue
+        new_end = min(s.end, limit)
+        if s.text.rstrip().endswith((".", "!", "?", '"', "…")):
+            break
+    if new_end > cand.end + 0.2:
+        return Candidate(cand.start, round(new_end, 2),
+                         _window_text(segments, cand.start, new_end), cand.score)
+    return cand
+
+
+def _trim_to_speaker(video: Path, cand: Candidate, segments: list[Segment]) -> Candidate:
+    """Advance the clip start to where the speaker first appears, so it never opens on a
+    speaker-less establishing/wide/slide shot. No-op if the speaker is already there or trimming
+    would push the clip under MIN_CLIP_SEC."""
+    if settings().get("reframe", {}).get("mode", "face") != "face":
+        return cand
+    ft = reframe.first_face_time(video, cand.start, cand.end)
+    if ft - cand.start > 1.0 and cand.end - ft >= MIN_CLIP_SEC:
+        return Candidate(round(ft, 2), cand.end, _window_text(segments, ft, cand.end), cand.score)
+    return cand
 
 
 def run(url: str, max_clips: int = 6, lane: str = "owned",
@@ -199,7 +231,9 @@ def run(url: str, max_clips: int = 6, lane: str = "owned",
     """
     db.init_db(db_path)
     created: list[dict] = []
-    vid_hash = hashlib.sha1(url.encode()).hexdigest()[:8]
+    # Include the start offset so two DIFFERENT moments cut from the SAME video get distinct
+    # ids (else clip_id collides and the second silently overwrites the first).
+    vid_hash = hashlib.sha1(f"{url}@{start_sec}".encode()).hexdigest()[:8]
     with tempfile.TemporaryDirectory(prefix="ycp-clip-") as tmp:
         workdir = Path(tmp)
         video = download(url, workdir, window_sec=window_sec, start_sec=start_sec)
@@ -214,6 +248,8 @@ def run(url: str, max_clips: int = 6, lane: str = "owned",
             # fallback must as well, else a 50-60s window slips through to QC.
             candidates = plan_clips(segments, max_len=MAX_CLIP_SEC, top=n_pick)
         candidates = _prefer_on_camera(video, candidates, max_clips)
+        candidates = [_trim_to_speaker(video, c, segments) for c in candidates]
+        candidates = [_extend_to_sentence(c, segments) for c in candidates]
         from . import optimize
         prefer = optimize.preferred_hooks()  # hook styles the loop has learned are winning
         ab = settings().get("ab", {})
@@ -257,7 +293,14 @@ def run(url: str, max_clips: int = 6, lane: str = "owned",
                     print(f"  · captions failed ({exc}); shipping plain clip")
                 if gameplay:
                     cur = enhance.stack_gameplay(cur, gameplay, workdir / f"{variant_id}_gp.mp4")
-                out = CLIPS_DIR / f"{variant_id}.mp4"
+                # ---- hardened QC gate: Gemini reviews the FINISHED clip and routes it ----
+                # usable → unreviewed/ (for human review); not usable → unusable/ (auto-reject,
+                # so charts/wide-tiny/cut-off clips never reach the human queue). Fails OPEN
+                # (usable) when Gemini is unavailable, so it can't silently swallow everything.
+                review = vision.review_clip(cur)
+                usable = review.get("usable", True)
+                status = "pending_qc" if usable else "rejected"
+                out = CLIPS_DIR / ("unreviewed" if usable else "unusable") / f"{variant_id}.mp4"
                 out.parent.mkdir(parents=True, exist_ok=True)
                 # Copy (not move) when the hook burn fell back to `staged`, so the shared base
                 # survives for the other variants in this A/B set.
@@ -265,12 +308,15 @@ def run(url: str, max_clips: int = 6, lane: str = "owned",
                     shutil.copy2(str(staged), str(out))
                 else:
                     shutil.move(str(cur), str(out))
+                if review.get("reviewed") and not usable:
+                    print(f"  ✗ QC rejected → unusable/ [{review.get('subject','?')}] "
+                          f"{'; '.join(review.get('issues', [])[:3])}")
                 db.insert_clip({
                     "clip_id": variant_id, "source_video_id": source_video_id,
                     "source_creator": source_creator, "channel": channel,
                     "platform": "youtube", "lane": lane, "fmt": "auto-clip",
                     "hook_type": hook["type"], "length_sec": int(cand.duration),
-                    "score": float(cand.score), "status": "pending_qc", "post_title": hook["text"],
+                    "score": float(cand.score), "status": status, "post_title": hook["text"],
                     "experiment_id": exp_id, "variant": hook["type"] if exp_id else None,
                     "post_url": str(out),  # local preview path until posted
                 }, db_path)
