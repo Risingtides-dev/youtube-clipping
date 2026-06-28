@@ -13,9 +13,23 @@ from __future__ import annotations
 
 import shutil
 import subprocess
+import threading
 from pathlib import Path
 
 from .config import ROOT
+
+# The cached YuNet detector is a SHARED singleton, but the mission reframes clips in parallel
+# threads — and setInputSize()+detect() isn't atomic, so one thread's portrait size collides with
+# another's landscape mid-detect (the "input_image.size must equal Size(inputW,inputH)" crash →
+# face detection fails → reframe falls back to a dumb centre crop). Serialize detection.
+_DET_LOCK = threading.Lock()
+
+
+def _detect(det, frame):
+    """Thread-safe setInputSize+detect on the shared detector (one frame in, faces out)."""
+    with _DET_LOCK:
+        det.setInputSize((frame.shape[1], frame.shape[0]))
+        return det.detect(frame)
 
 TARGET_W, TARGET_H = 1080, 1920
 # Zoom-to-speaker: if the face is smaller than ZOOM_TRIGGER_FH of frame height (a wide stage
@@ -172,14 +186,13 @@ def face_track(video: Path, sample_fps: float = 3.0, min_face_frac: float = 0.06
     cap = cv2.VideoCapture(str(video))
     fps = cap.get(cv2.CAP_PROP_FPS) or 30.0
     width = cap.get(cv2.CAP_PROP_FRAME_WIDTH) or 1.0
-    height = cap.get(cv2.CAP_PROP_FRAME_HEIGHT) or 1.0
+    height = cap.get(cv2.CAP_PROP_FRAME_HEIGHT) or 1.0   # face geometry is normalized to this
     det = _yunet()
     rec = _sface() if (det is not None and _identity_lock_on()) else None
     cascade = None if det else cv2.CascadeClassifier(
         cv2.data.haarcascades + "haarcascade_frontalface_default.xml")
     if det is not None:
-        det.setInputSize((int(width), int(height)))
-    step = max(1, round(fps / max(sample_fps, 0.5)))
+        step = max(1, round(fps / max(sample_fps, 0.5)))
     min_px = max(40, int(min_face_frac * width))
     track: list[tuple[float, float]] = []            # largest-face-per-frame (no SFace)
     records: list[tuple[float, float, object]] = []  # (t, cx_frac, embedding) for identity-lock
@@ -193,7 +206,7 @@ def face_track(video: Path, sample_fps: float = 3.0, min_face_frac: float = 0.06
             sampled += 1
             t = i / fps
             if det is not None:
-                _, faces = det.detect(frame)
+                _, faces = _detect(det, frame)
                 rows = [f for f in (faces if faces is not None else []) if f[2] >= min_px]
             else:
                 gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
@@ -239,8 +252,6 @@ def face_coverage(video: Path, start: float, end: float, n: int = 6) -> float:
         return 1.0
     cap = cv2.VideoCapture(str(video))
     width = cap.get(cv2.CAP_PROP_FRAME_WIDTH) or 1.0
-    height = cap.get(cv2.CAP_PROP_FRAME_HEIGHT) or 1.0
-    det.setInputSize((int(width), int(height)))
     min_px = max(40, int(0.06 * width))
     hits = seen = 0
     for k in range(n):
@@ -250,7 +261,7 @@ def face_coverage(video: Path, start: float, end: float, n: int = 6) -> float:
         if not ok:
             continue
         seen += 1
-        _, faces = det.detect(frame)
+        _, faces = _detect(det, frame)
         if any(f[2] >= min_px for f in (faces if faces is not None else [])):
             hits += 1
     cap.release()
@@ -272,8 +283,6 @@ def first_face_time(video: Path, start: float, end: float, max_skip: float = 4.0
         return start
     cap = cv2.VideoCapture(str(video))
     width = cap.get(cv2.CAP_PROP_FRAME_WIDTH) or 1.0
-    height = cap.get(cv2.CAP_PROP_FRAME_HEIGHT) or 1.0
-    det.setInputSize((int(width), int(height)))
     min_px = max(40, int(min_face_frac * width))
     hi = min(end, start + max_skip)
     for k in range(n):
@@ -282,7 +291,7 @@ def first_face_time(video: Path, start: float, end: float, max_skip: float = 4.0
         ok, frame = cap.read()
         if not ok:
             continue
-        _, faces = det.detect(frame)
+        _, faces = _detect(det, frame)
         if any(f[2] >= min_px for f in (faces if faces is not None else [])):
             cap.release()
             return t                      # first frame the speaker is on camera
@@ -308,8 +317,7 @@ def face_band(video: Path, t: float = 0.3) -> tuple[float, float] | None:
     if not ok or frame is None:
         return None
     h, w = frame.shape[:2]
-    det.setInputSize((w, h))
-    _, faces = det.detect(frame)
+    _, faces = _detect(det, frame)
     if faces is None or not len(faces):
         return None
     f = max(faces, key=lambda r: float(r[2]) * float(r[3]))   # largest face
